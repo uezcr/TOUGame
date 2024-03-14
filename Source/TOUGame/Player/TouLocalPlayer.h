@@ -1,8 +1,7 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CommonLocalPlayer.h"
+#include "Teams/TouTeamAgentInterface.h"
 
 #include "TouLocalPlayer.generated.h"
 
@@ -21,7 +20,7 @@ struct FSwapAudioOutputResult;
  * UTouLocalPlayer
  */
 UCLASS()
-class TOUGAME_API UTouLocalPlayer : public UCommonLocalPlayer
+class TOUGAME_API UTouLocalPlayer : public UCommonLocalPlayer, public ITouTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -41,7 +40,13 @@ public:
 	virtual bool SpawnPlayActor(const FString& URL, FString& OutError, UWorld* InWorld) override;
 	virtual void InitOnlineSession() override;
 	//~End of ULocalPlayer interface
-	
+
+	//~ITouTeamAgentInterface interface
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual FOnTouTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() override;
+	//~End of ITouTeamAgentInterface interface
+
 	/** Gets the local settings for this player, this is read from config files at process startup and is always valid */
 	UFUNCTION()
 	UTouSettingsLocal* GetLocalSettings() const;
@@ -61,6 +66,11 @@ protected:
 	UFUNCTION()
 	void OnCompletedAudioDeviceSwap(const FSwapAudioOutputResult& SwapResult);
 
+	void OnPlayerControllerChanged(APlayerController* NewController);
+
+	UFUNCTION()
+	void OnControllerChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam);
+
 private:
 	UPROPERTY(Transient)
 	mutable TObjectPtr<UTouSettingsShared> SharedSettings;
@@ -69,7 +79,10 @@ private:
 
 	UPROPERTY(Transient)
 	mutable TObjectPtr<const UInputMappingContext> InputMappingContext;
-	
+
+	UPROPERTY()
+	FOnTouTeamIndexChangedDelegate OnTeamChangedDelegate;
+
 	UPROPERTY()
 	TWeakObjectPtr<APlayerController> LastBoundPC;
 };

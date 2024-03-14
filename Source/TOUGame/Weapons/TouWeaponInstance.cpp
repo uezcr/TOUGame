@@ -6,6 +6,7 @@
 #include "Misc/AssertionMacros.h"
 #include "GameFramework/InputDeviceSubsystem.h"
 #include "GameFramework/InputDeviceProperties.h"
+#include "Character/TouHealthComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TouWeaponInstance)
 
@@ -22,10 +23,10 @@ UTouWeaponInstance::UTouWeaponInstance(const FObjectInitializer& ObjectInitializ
 		// We only need to do this for player controlled pawns, since AI and others won't have input devices on the client
 		if (Pawn->IsPlayerControlled())
 		{
-			// if (UTouHealthComponent* HealthComponent = UTouHealthComponent::FindHealthComponent(GetPawn()))
-			// {
-			// 	HealthComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
-			// }
+			if (UTouHealthComponent* HealthComponent = UTouHealthComponent::FindHealthComponent(GetPawn()))
+			{
+				HealthComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
+			}
 		}
 	}
 }

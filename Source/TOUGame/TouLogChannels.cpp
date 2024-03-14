@@ -6,6 +6,7 @@
 DEFINE_LOG_CATEGORY(LogTou);
 DEFINE_LOG_CATEGORY(LogTouExperience);
 DEFINE_LOG_CATEGORY(LogTouAbilitySystem);
+DEFINE_LOG_CATEGORY(LogTouTeams);
 
 FString GetClientServerContextString(UObject* ContextObject)
 {

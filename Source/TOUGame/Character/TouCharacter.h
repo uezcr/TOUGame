@@ -4,6 +4,7 @@
 #include "GameplayCueInterface.h"
 #include "GameplayTagAssetInterface.h"
 #include "ModularCharacter.h"
+#include "Teams/TouTeamAgentInterface.h"
 
 #include "TouCharacter.generated.h"
 
@@ -90,7 +91,7 @@ struct TStructOpsTypeTraits<FSharedRepMovement> : public TStructOpsTypeTraitsBas
  *	New behavior should be added via pawn components when possible.
  */
 UCLASS(Config = Game, Meta = (ShortTooltip = "The base character pawn class used by this project."))
-class TOUGAME_API ATouCharacter : public AModularCharacter, public IAbilitySystemInterface, public IGameplayCueInterface, public IGameplayTagAssetInterface
+class TOUGAME_API ATouCharacter : public AModularCharacter, public IAbilitySystemInterface, public IGameplayCueInterface, public IGameplayTagAssetInterface, public ITouTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -127,6 +128,12 @@ public:
 	//~APawn interface
 	virtual void NotifyControllerChanged() override;
 	//~End of APawn interface
+
+	//~ITouTeamAgentInterface interface
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual FOnTouTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() override;
+	//~End of ITouTeamAgentInterface interface
 
 	/** RPCs that is called on frames when default property replication is skipped. This replicates a single movement update to everyone. */
 	UFUNCTION(NetMulticast, unreliable)
@@ -182,12 +189,29 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tou|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UTouPawnExtensionComponent> PawnExtComponent;
-	
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tou|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UTouHealthComponent> HealthComponent;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tou|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UTouCameraComponent> CameraComponent;
 
 	UPROPERTY(Transient, ReplicatedUsing = OnRep_ReplicatedAcceleration)
 	FTouReplicatedAcceleration ReplicatedAcceleration;
+
+	UPROPERTY(ReplicatedUsing = OnRep_MyTeamID)
+	FGenericTeamId MyTeamID;
+
+	UPROPERTY()
+	FOnTouTeamIndexChangedDelegate OnTeamChangedDelegate;
+
+protected:
+	// Called to determine what happens to the team ID when possession ends
+	virtual FGenericTeamId DetermineNewTeamAfterPossessionEnds(FGenericTeamId OldTeamID) const
+	{
+		// This could be changed to return, e.g., OldTeamID if you want to keep it assigned afterwards, or return an ID for some neutral faction, or etc...
+		return FGenericTeamId::NoTeam;
+	}
 
 private:
 	UFUNCTION()
@@ -195,4 +219,7 @@ private:
 
 	UFUNCTION()
 	void OnRep_ReplicatedAcceleration();
+
+	UFUNCTION()
+	void OnRep_MyTeamID(FGenericTeamId OldTeamID);
 };

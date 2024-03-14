@@ -2,6 +2,7 @@
 
 #include "Camera/TouCameraAssistInterface.h"
 #include "CommonPlayerController.h"
+#include "Teams/TouTeamAgentInterface.h"
 
 #include "TouPlayerController.generated.h"
 
@@ -25,7 +26,7 @@ struct FFrame;
  *	The base player controller class used by this project.
  */
 UCLASS(Config = Game, Meta = (ShortTooltip = "The base player controller class used by this project."))
-class TOUGAME_API ATouPlayerController : public ACommonPlayerController, public ITouCameraAssistInterface
+class TOUGAME_API ATouPlayerController : public ACommonPlayerController, public ITouCameraAssistInterface, public ITouTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -87,6 +88,12 @@ public:
 	virtual void OnCameraPenetratingTarget() override;
 	//~End of ITouCameraAssistInterface interface
 	
+	//~ITouTeamAgentInterface interface
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual FOnTouTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() override;
+	//~End of ITouTeamAgentInterface interface
+
 	UFUNCTION(BlueprintCallable, Category = "Tou|Character")
 	void SetIsAutoRunning(const bool bEnabled);
 
@@ -95,7 +102,14 @@ public:
 
 private:
 	UPROPERTY()
+	FOnTouTeamIndexChangedDelegate OnTeamChangedDelegate;
+
+	UPROPERTY()
 	TObjectPtr<APlayerState> LastSeenPlayerState;
+
+private:
+	UFUNCTION()
+	void OnPlayerStateChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam);
 
 protected:
 	// Called when the player state is set or cleared

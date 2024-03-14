@@ -1,9 +1,8 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "TouCharacter.h"
 
 #include "AbilitySystem/TouAbilitySystemComponent.h"
 #include "Camera/TouCameraComponent.h"
+#include "Character/TouHealthComponent.h"
 #include "Character/TouPawnExtensionComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SkeletalMeshComponent.h"
@@ -63,6 +62,10 @@ ATouCharacter::ATouCharacter(const FObjectInitializer& ObjectInitializer)
 	PawnExtComponent = CreateDefaultSubobject<UTouPawnExtensionComponent>(TEXT("PawnExtensionComponent"));
 	PawnExtComponent->OnAbilitySystemInitialized_RegisterAndCall(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemInitialized));
 	PawnExtComponent->OnAbilitySystemUninitialized_Register(FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &ThisClass::OnAbilitySystemUninitialized));
+
+	HealthComponent = CreateDefaultSubobject<UTouHealthComponent>(TEXT("HealthComponent"));
+	HealthComponent->OnDeathStarted.AddDynamic(this, &ThisClass::OnDeathStarted);
+	HealthComponent->OnDeathFinished.AddDynamic(this, &ThisClass::OnDeathFinished);
 
 	CameraComponent = CreateDefaultSubobject<UTouCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetRelativeLocation(FVector(-300.0f, 0.0f, 75.0f));
@@ -126,6 +129,7 @@ void ATouCharacter::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(ThisClass, ReplicatedAcceleration, COND_SimulatedOnly);
+	DOREPLIFETIME(ThisClass, MyTeamID)
 }
 
 void ATouCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTracker)
@@ -148,7 +152,19 @@ void ATouCharacter::PreReplication(IRepChangedPropertyTracker& ChangedPropertyTr
 
 void ATouCharacter::NotifyControllerChanged()
 {
+	const FGenericTeamId OldTeamId = GetGenericTeamId();
+
 	Super::NotifyControllerChanged();
+
+	// Update our team ID based on the controller
+	if (HasAuthority() && (Controller != nullptr))
+	{
+		if (ITouTeamAgentInterface* ControllerWithTeam = Cast<ITouTeamAgentInterface>(Controller))
+		{
+			MyTeamID = ControllerWithTeam->GetGenericTeamId();
+			ConditionalBroadcastTeamChanged(this, OldTeamId, MyTeamID);
+		}
+	}
 }
 
 ATouPlayerController* ATouCharacter::GetTouPlayerController() const
@@ -181,25 +197,51 @@ void ATouCharacter::OnAbilitySystemInitialized()
 	UTouAbilitySystemComponent* TouASC = GetTouAbilitySystemComponent();
 	check(TouASC);
 
+	HealthComponent->InitializeWithAbilitySystem(TouASC);
+
 	InitializeGameplayTags();
 }
 
 void ATouCharacter::OnAbilitySystemUninitialized()
 {
-	
+	HealthComponent->UninitializeFromAbilitySystem();
 }
 
 void ATouCharacter::PossessedBy(AController* NewController)
 {
+	const FGenericTeamId OldTeamID = MyTeamID;
+
 	Super::PossessedBy(NewController);
+
 	PawnExtComponent->HandleControllerChanged();
+
+	// Grab the current team ID and listen for future changes
+	if (ITouTeamAgentInterface* ControllerAsTeamProvider = Cast<ITouTeamAgentInterface>(NewController))
+	{
+		MyTeamID = ControllerAsTeamProvider->GetGenericTeamId();
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().AddDynamic(this, &ThisClass::OnControllerChangedTeam);
+	}
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
 void ATouCharacter::UnPossessed()
 {
 	AController* const OldController = Controller;
+
+	// Stop listening for changes from the old controller
+	const FGenericTeamId OldTeamID = MyTeamID;
+	if (ITouTeamAgentInterface* ControllerAsTeamProvider = Cast<ITouTeamAgentInterface>(OldController))
+	{
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().RemoveAll(this);
+	}
+
 	Super::UnPossessed();
+
 	PawnExtComponent->HandleControllerChanged();
+
+	// Determine what the new team ID should be afterwards
+	MyTeamID = DetermineNewTeamAfterPossessionEnds(OldTeamID);
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
 void ATouCharacter::OnRep_Controller()
@@ -289,7 +331,7 @@ bool ATouCharacter::HasAnyMatchingGameplayTags(const FGameplayTagContainer& TagC
 
 void ATouCharacter::FellOutOfWorld(const class UDamageType& dmgType)
 {
-	
+	HealthComponent->DamageSelfDestruct(/*bFellOutOfWorld=*/ true);
 }
 
 void ATouCharacter::OnDeathStarted(AActor*)
@@ -437,9 +479,47 @@ void ATouCharacter::OnRep_ReplicatedAcceleration()
 	}
 }
 
+void ATouCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	if (GetController() == nullptr)
+	{
+		if (HasAuthority())
+		{
+			const FGenericTeamId OldTeamID = MyTeamID;
+			MyTeamID = NewTeamID;
+			ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
+		}
+		else
+		{
+			UE_LOG(LogTouTeams, Error, TEXT("You can't set the team ID on a character (%s) except on the authority"), *GetPathNameSafe(this));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTouTeams, Error, TEXT("You can't set the team ID on a possessed character (%s); it's driven by the associated controller"), *GetPathNameSafe(this));
+	}
+}
+
+FGenericTeamId ATouCharacter::GetGenericTeamId() const
+{
+	return MyTeamID;
+}
+
+FOnTouTeamIndexChangedDelegate* ATouCharacter::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
+}
+
 void ATouCharacter::OnControllerChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam)
 {
+	const FGenericTeamId MyOldTeamID = MyTeamID;
+	MyTeamID = IntegerToGenericTeamId(NewTeam);
+	ConditionalBroadcastTeamChanged(this, MyOldTeamID, MyTeamID);
+}
 
+void ATouCharacter::OnRep_MyTeamID(FGenericTeamId OldTeamID)
+{
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
 bool ATouCharacter::UpdateSharedReplication()

@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "Player/TouLocalPlayer.h"
 
 #include "AudioMixerBlueprintLibrary.h"
@@ -30,18 +28,68 @@ void UTouLocalPlayer::PostInitProperties()
 void UTouLocalPlayer::SwitchController(class APlayerController* PC)
 {
 	Super::SwitchController(PC);
+
+	OnPlayerControllerChanged(PlayerController);
 }
 
 bool UTouLocalPlayer::SpawnPlayActor(const FString& URL, FString& OutError, UWorld* InWorld)
 {
 	const bool bResult = Super::SpawnPlayActor(URL, OutError, InWorld);
 
+	OnPlayerControllerChanged(PlayerController);
+
 	return bResult;
 }
 
 void UTouLocalPlayer::InitOnlineSession()
 {
+	OnPlayerControllerChanged(PlayerController);
+
 	Super::InitOnlineSession();
+}
+
+void UTouLocalPlayer::OnPlayerControllerChanged(APlayerController* NewController)
+{
+	// Stop listening for changes from the old controller
+	FGenericTeamId OldTeamID = FGenericTeamId::NoTeam;
+	if (ITouTeamAgentInterface* ControllerAsTeamProvider = Cast<ITouTeamAgentInterface>(LastBoundPC.Get()))
+	{
+		OldTeamID = ControllerAsTeamProvider->GetGenericTeamId();
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().RemoveAll(this);
+	}
+
+	// Grab the current team ID and listen for future changes
+	FGenericTeamId NewTeamID = FGenericTeamId::NoTeam;
+	if (ITouTeamAgentInterface* ControllerAsTeamProvider = Cast<ITouTeamAgentInterface>(NewController))
+	{
+		NewTeamID = ControllerAsTeamProvider->GetGenericTeamId();
+		ControllerAsTeamProvider->GetTeamChangedDelegateChecked().AddDynamic(this, &ThisClass::OnControllerChangedTeam);
+		LastBoundPC = NewController;
+	}
+
+	ConditionalBroadcastTeamChanged(this, OldTeamID, NewTeamID);
+}
+
+void UTouLocalPlayer::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	// Do nothing, we merely observe the team of our associated player controller
+}
+
+FGenericTeamId UTouLocalPlayer::GetGenericTeamId() const
+{
+	if (ITouTeamAgentInterface* ControllerAsTeamProvider = Cast<ITouTeamAgentInterface>(PlayerController))
+	{
+		return ControllerAsTeamProvider->GetGenericTeamId();
+	}
+	else
+	{
+		return FGenericTeamId::NoTeam;
+	}
+}
+
+FOnTouTeamIndexChangedDelegate* UTouLocalPlayer::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
 }
 
 UTouSettingsLocal* UTouLocalPlayer::GetLocalSettings() const
@@ -109,4 +157,8 @@ void UTouLocalPlayer::OnCompletedAudioDeviceSwap(const FSwapAudioOutputResult& S
 	}
 }
 
+void UTouLocalPlayer::OnControllerChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam)
+{
+	ConditionalBroadcastTeamChanged(this, IntegerToGenericTeamId(OldTeam), IntegerToGenericTeamId(NewTeam));
+}
 

@@ -4,6 +4,7 @@
 #include "AbilitySystem/TouGameplayEffectContext.h"
 #include "AbilitySystem/TouAbilitySourceInterface.h"
 #include "Engine/World.h"
+#include "Teams/TouTeamSubsystem.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TouDamageExecution)
 
@@ -86,11 +87,11 @@ void UTouDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	float DamageInteractionAllowedMultiplier = 0.0f;
 	if (HitActor)
 	{
-		// UTouTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UTouTeamSubsystem>();
-		// if (ensure(TeamSubsystem))
-		// {
-		// 	DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
-		// }
+		UTouTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UTouTeamSubsystem>();
+		if (ensure(TeamSubsystem))
+		{
+			DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
+		}
 	}
 
 	// Determine distance

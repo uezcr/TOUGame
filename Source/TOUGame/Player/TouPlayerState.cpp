@@ -1,7 +1,7 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "TouPlayerState.h"
 
+#include "AbilitySystem/Attributes/TouCombatSet.h"
+#include "AbilitySystem/Attributes/TouHealthSet.h"
 #include "AbilitySystem/TouAbilitySet.h"
 #include "AbilitySystem/TouAbilitySystemComponent.h"
 #include "Character/TouPawnData.h"
@@ -32,10 +32,15 @@ ATouPlayerState::ATouPlayerState(const FObjectInitializer& ObjectInitializer)
 	AbilitySystemComponent = ObjectInitializer.CreateDefaultSubobject<UTouAbilitySystemComponent>(this, TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-	
+
+	// These attribute sets will be detected by AbilitySystemComponent::InitializeComponent. Keeping a reference so that the sets don't get garbage collected before that.
+	HealthSet = CreateDefaultSubobject<UTouHealthSet>(TEXT("HealthSet"));
+	CombatSet = CreateDefaultSubobject<UTouCombatSet>(TEXT("CombatSet"));
+
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	NetUpdateFrequency = 100.0f;
-	
+
+	MyTeamID = FGenericTeamId::NoTeam;
 	MySquadID = INDEX_NONE;
 }
 
@@ -123,6 +128,7 @@ void ATouPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, PawnData, SharedParams);
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, MyPlayerConnectionType, SharedParams)
+	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, MyTeamID, SharedParams);
 	DOREPLIFETIME_WITH_PARAMS_FAST(ThisClass, MySquadID, SharedParams);
 
 	SharedParams.Condition = ELifetimeCondition::COND_SkipOwner;
@@ -223,6 +229,37 @@ void ATouPlayerState::SetSquadID(int32 NewSquadId)
 
 		MySquadID = NewSquadId;
 	}
+}
+
+void ATouPlayerState::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	if (HasAuthority())
+	{
+		const FGenericTeamId OldTeamID = MyTeamID;
+
+		MARK_PROPERTY_DIRTY_FROM_NAME(ThisClass, MyTeamID, this);
+		MyTeamID = NewTeamID;
+		ConditionalBroadcastTeamChanged(this, OldTeamID, NewTeamID);
+	}
+	else
+	{
+		UE_LOG(LogTouTeams, Error, TEXT("Cannot set team for %s on non-authority"), *GetPathName(this));
+	}
+}
+
+FGenericTeamId ATouPlayerState::GetGenericTeamId() const
+{
+	return MyTeamID;
+}
+
+FOnTouTeamIndexChangedDelegate* ATouPlayerState::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
+}
+
+void ATouPlayerState::OnRep_MyTeamID(FGenericTeamId OldTeamID)
+{
+	ConditionalBroadcastTeamChanged(this, OldTeamID, MyTeamID);
 }
 
 void ATouPlayerState::OnRep_MySquadID()

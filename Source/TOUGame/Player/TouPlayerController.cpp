@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "TouPlayerController.h"
 #include "CommonInputTypeEnum.h"
 #include "Components/PrimitiveComponent.h"
@@ -208,6 +206,11 @@ bool ATouPlayerController::ShouldRecordClientReplay()
 	return false;
 }
 
+void ATouPlayerController::OnPlayerStateChangedTeam(UObject* TeamAgent, int32 OldTeam, int32 NewTeam)
+{
+	ConditionalBroadcastTeamChanged(this, IntegerToGenericTeamId(OldTeam), IntegerToGenericTeamId(NewTeam));
+}
+
 void ATouPlayerController::OnPlayerStateChanged()
 {
 	// Empty, place for derived classes to implement without having to hook all the other events
@@ -216,7 +219,32 @@ void ATouPlayerController::OnPlayerStateChanged()
 void ATouPlayerController::BroadcastOnPlayerStateChanged()
 {
 	OnPlayerStateChanged();
-	
+
+	// Unbind from the old player state, if any
+	FGenericTeamId OldTeamID = FGenericTeamId::NoTeam;
+	if (LastSeenPlayerState != nullptr)
+	{
+		if (ITouTeamAgentInterface* PlayerStateTeamInterface = Cast<ITouTeamAgentInterface>(LastSeenPlayerState))
+		{
+			OldTeamID = PlayerStateTeamInterface->GetGenericTeamId();
+			PlayerStateTeamInterface->GetTeamChangedDelegateChecked().RemoveAll(this);
+		}
+	}
+
+	// Bind to the new player state, if any
+	FGenericTeamId NewTeamID = FGenericTeamId::NoTeam;
+	if (PlayerState != nullptr)
+	{
+		if (ITouTeamAgentInterface* PlayerStateTeamInterface = Cast<ITouTeamAgentInterface>(PlayerState))
+		{
+			NewTeamID = PlayerStateTeamInterface->GetGenericTeamId();
+			PlayerStateTeamInterface->GetTeamChangedDelegateChecked().AddDynamic(this, &ThisClass::OnPlayerStateChangedTeam);
+		}
+	}
+
+	// Broadcast the team change (if it really has)
+	ConditionalBroadcastTeamChanged(this, OldTeamID, NewTeamID);
+
 	LastSeenPlayerState = PlayerState;
 }
 
@@ -458,6 +486,25 @@ void ATouPlayerController::UpdateHiddenComponents(const FVector& ViewLocation, T
 		// we consumed it, reset for next frame
 		bHideViewTargetPawnNextFrame = false;
 	}
+}
+
+void ATouPlayerController::SetGenericTeamId(const FGenericTeamId& NewTeamID)
+{
+	UE_LOG(LogTouTeams, Error, TEXT("You can't set the team ID on a player controller (%s); it's driven by the associated player state"), *GetPathNameSafe(this));
+}
+
+FGenericTeamId ATouPlayerController::GetGenericTeamId() const
+{
+	if (const ITouTeamAgentInterface* PSWithTeamInterface = Cast<ITouTeamAgentInterface>(PlayerState))
+	{
+		return PSWithTeamInterface->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
+}
+
+FOnTouTeamIndexChangedDelegate* ATouPlayerController::GetOnTeamIndexChangedDelegate()
+{
+	return &OnTeamChangedDelegate;
 }
 
 void ATouPlayerController::OnUnPossess()

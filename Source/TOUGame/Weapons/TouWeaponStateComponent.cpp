@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "NativeGameplayTags.h"
 #include "Physics/PhysicalMaterialWithTags.h"
+#include "Teams/TouTeamSubsystem.h"
 #include "Weapons/TouRangedWeaponInstance.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TouWeaponStateComponent)
@@ -44,6 +45,10 @@ bool UTouWeaponStateComponent::ShouldShowHitAsSuccess(const FHitResult& Hit) con
 
 	//@TODO: Don't treat a hit that dealt no damage (due to invulnerability or similar) as a success
 	UWorld* World = GetWorld();
+	if (UTouTeamSubsystem* TeamSubsystem = UWorld::GetSubsystem<UTouTeamSubsystem>(GetWorld()))
+	{
+		return TeamSubsystem->CanCauseDamage(GetController<APlayerController>(), Hit.GetActor());
+	}
 
 	return false;
 }

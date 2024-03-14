@@ -1,10 +1,9 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "AbilitySystemInterface.h"
 #include "ModularPlayerState.h"
 #include "System/GameplayTagStack.h"
+#include "Teams/TouTeamAgentInterface.h"
 
 #include "TouPlayerState.generated.h"
 
@@ -45,7 +44,7 @@ enum class ETouPlayerConnectionType : uint8
  *	Base player state class used by this project.
  */
 UCLASS(Config = Game)
-class TOUGAME_API ATouPlayerState : public AModularPlayerState, public IAbilitySystemInterface
+class TOUGAME_API ATouPlayerState : public AModularPlayerState, public IAbilitySystemInterface, public ITouTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -77,6 +76,12 @@ public:
 	virtual void OnReactivated() override;
 	//~End of APlayerState interface
 
+	//~ITouTeamAgentInterface interface
+	virtual void SetGenericTeamId(const FGenericTeamId& NewTeamID) override;
+	virtual FGenericTeamId GetGenericTeamId() const override;
+	virtual FOnTouTeamIndexChangedDelegate* GetOnTeamIndexChangedDelegate() override;
+	//~End of ITouTeamAgentInterface interface
+
 	static const FName NAME_TouAbilityReady;
 
 	void SetPlayerConnectionType(ETouPlayerConnectionType NewType);
@@ -87,6 +92,13 @@ public:
 	int32 GetSquadId() const
 	{
 		return MySquadID;
+	}
+
+	/** Returns the Team ID of the team the player belongs to. */
+	UFUNCTION(BlueprintCallable)
+	int32 GetTeamId() const
+	{
+		return GenericTeamIdToInteger(MyTeamID);
 	}
 
 	void SetSquadID(int32 NewSquadID);
@@ -135,10 +147,23 @@ private:
 	// The ability system component sub-object used by player characters.
 	UPROPERTY(VisibleAnywhere, Category = "Tou|PlayerState")
 	TObjectPtr<UTouAbilitySystemComponent> AbilitySystemComponent;
-	
+
+	// Health attribute set used by this actor.
+	UPROPERTY()
+	TObjectPtr<const class UTouHealthSet> HealthSet;
+	// Combat attribute set used by this actor.
+	UPROPERTY()
+	TObjectPtr<const class UTouCombatSet> CombatSet;
+
 	UPROPERTY(Replicated)
 	ETouPlayerConnectionType MyPlayerConnectionType;
-	
+
+	UPROPERTY()
+	FOnTouTeamIndexChangedDelegate OnTeamChangedDelegate;
+
+	UPROPERTY(ReplicatedUsing=OnRep_MyTeamID)
+	FGenericTeamId MyTeamID;
+
 	UPROPERTY(ReplicatedUsing=OnRep_MySquadID)
 	int32 MySquadID;
 
@@ -149,6 +174,9 @@ private:
 	FRotator ReplicatedViewRotation;
 
 private:
+	UFUNCTION()
+	void OnRep_MyTeamID(FGenericTeamId OldTeamID);
+
 	UFUNCTION()
 	void OnRep_MySquadID();
 };
