@@ -84,14 +84,14 @@ void UTouDamageExecution::Execute_Implementation(const FGameplayEffectCustomExec
 	}
 
 	// Apply rules for team damage/self damage/etc...
-	float DamageInteractionAllowedMultiplier = 0.0f;
+	float DamageInteractionAllowedMultiplier = 1.0f;
 	if (HitActor)
 	{
-		UTouTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UTouTeamSubsystem>();
-		if (ensure(TeamSubsystem))
-		{
-			DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
-		}
+		// UTouTeamSubsystem* TeamSubsystem = HitActor->GetWorld()->GetSubsystem<UTouTeamSubsystem>();
+		// if (ensure(TeamSubsystem))
+		// {
+		// 	DamageInteractionAllowedMultiplier = TeamSubsystem->CanCauseDamage(EffectCauser, HitActor) ? 1.0 : 0.0;
+		// }
 	}
 
 	// Determine distance

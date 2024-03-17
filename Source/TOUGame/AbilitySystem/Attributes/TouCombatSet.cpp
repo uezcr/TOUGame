@@ -9,8 +9,8 @@ class FLifetimeProperty;
 
 
 UTouCombatSet::UTouCombatSet()
-	: BaseDamage(0.0f)
-	, BaseHeal(0.0f)
+	: BaseDamage(5.0f)
+	, BaseHeal(5.0f)
 {
 }
 
