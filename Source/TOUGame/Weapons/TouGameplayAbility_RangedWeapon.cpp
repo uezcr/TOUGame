@@ -351,6 +351,7 @@ void UTouGameplayAbility_RangedWeapon::PerformLocalTargeting(OUT TArray<FHitResu
 {
 	APawn* const AvatarPawn = Cast<APawn>(GetAvatarActorFromActorInfo());
 
+	//获取武器信息.
 	UTouRangedWeaponInstance* WeaponData = GetWeaponInstance();
 	if (AvatarPawn && AvatarPawn->IsLocallyControlled() && WeaponData)
 	{
