@@ -16,14 +16,14 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TouExperienceManagerComponent)
 
-//@TODO: Async load the experience definition itself
-//@TODO: Handle failures explicitly (go into a 'completed but failed' state rather than check()-ing)
-//@TODO: Do the action phases at the appropriate times instead of all at once
-//@TODO: Support deactivating an experience and do the unloading actions
-//@TODO: Think about what deactivation/cleanup means for preloaded assets
-//@TODO: Handle deactivating game features, right now we 'leak' them enabled
-// (for a client moving from experience to experience we actually want to diff the requirements and only unload some, not unload everything for them to just be immediately reloaded)
-//@TODO: Handle both built-in and URL-based plugins (search for colon?)
+//@TODO：异步加载体验定义本身
+//@TODO：明确处理失败（进入 "已完成但失败 "状态，而不是检查()状态）
+//@TODO：在适当的时间执行动作阶段，而不是一次全部执行
+//@TODO：支持停用体验并执行卸载操作
+//@TODO：思考停用/清理对预载资产的意义
+//@TODO:处理游戏功能的停用，现在我们 "泄露 "了这些功能。
+//（对于从一个体验转到另一个体验的客户端，我们实际上希望区分需求，只卸载部分，而不是卸载所有，让它们立即重新加载）
+//@待办事项：处理内置插件和基于 URL 的插件（搜索冒号？）
 
 namespace TouConsoleVariables
 {
@@ -145,12 +145,12 @@ void UTouExperienceManagerComponent::StartExperienceLoad()
 		}
 	}
 
-	// Load assets associated with the experience
+	// 加载与体验相关的资产
 
 	TArray<FName> BundlesToLoad;
 	BundlesToLoad.Add(FTouBundles::Equipped);
 
-	//@TODO: Centralize this client/server stuff into the TouAssetManager
+	//@TODO: 将客户端/服务器内容集中到 TouAssetManager 中
 	const ENetMode OwnerNetMode = GetOwner()->GetNetMode();
 	const bool bLoadClient = GIsEditor || (OwnerNetMode != NM_DedicatedServer);
 	const bool bLoadServer = GIsEditor || (OwnerNetMode != NM_Client);
@@ -175,7 +175,7 @@ void UTouExperienceManagerComponent::StartExperienceLoad()
 		RawLoadHandle = AssetManager.LoadAssetList(RawAssetList.Array(), FStreamableDelegate(), FStreamableManager::AsyncLoadHighPriority, TEXT("StartExperienceLoad()"));
 	}
 
-	// If both async loads are running, combine them
+	// 如果同时运行两个异步加载，则将其合并
 	TSharedPtr<FStreamableHandle> Handle = nullptr;
 	if (BundleLoadHandle.IsValid() && RawLoadHandle.IsValid())
 	{
@@ -189,7 +189,7 @@ void UTouExperienceManagerComponent::StartExperienceLoad()
 	FStreamableDelegate OnAssetsLoadedDelegate = FStreamableDelegate::CreateUObject(this, &ThisClass::OnExperienceLoadComplete);
 	if (!Handle.IsValid() || Handle->HasLoadCompleted())
 	{
-		// Assets were already loaded, call the delegate now
+		// 资产已加载，现在调用委托
 		FStreamableHandle::ExecuteDelegate(OnAssetsLoadedDelegate);
 	}
 	else
@@ -202,9 +202,9 @@ void UTouExperienceManagerComponent::StartExperienceLoad()
 			}));
 	}
 
-	// This set of assets gets preloaded, but we don't block the start of the experience based on it
+	// 这组资产会被预加载，但我们不会因此而阻止体验的开始
 	TSet<FPrimaryAssetId> PreloadAssetList;
-	//@TODO: Determine assets to preload (but not blocking-ly)
+	//@TODO: 确定要预载的资产（但不是阻塞性的）
 	if (PreloadAssetList.Num() > 0)
 	{
 		AssetManager.ChangeBundleStateForPrimaryAssets(PreloadAssetList.Array(), BundlesToLoad, {});
@@ -220,7 +220,7 @@ void UTouExperienceManagerComponent::OnExperienceLoadComplete()
 		*CurrentExperience->GetPrimaryAssetId().ToString(),
 		*GetClientServerContextString(this));
 
-	// find the URLs for our GameFeaturePlugins - filtering out dupes and ones that don't have a valid mapping
+	// 查找我们的 GameFeaturePlugins 的 URL - 过滤掉重复的和没有有效映射的 URL
 	GameFeaturePluginURLs.Reset();
 
 	auto CollectGameFeaturePluginURLs = [This=this](const UPrimaryDataAsset* Context, const TArray<FString>& FeaturePluginList)
@@ -258,7 +258,7 @@ void UTouExperienceManagerComponent::OnExperienceLoadComplete()
 		}
 	}
 
-	// Load and activate the features	
+	// 加载并激活功能	
 	NumGameFeaturePluginsLoading = GameFeaturePluginURLs.Num();
 	if (NumGameFeaturePluginsLoading > 0)
 	{
@@ -323,9 +323,9 @@ void UTouExperienceManagerComponent::OnExperienceFullLoadCompleted()
 		{
 			if (Action != nullptr)
 			{
-				//@TODO: The fact that these don't take a world are potentially problematic in client-server PIE
-				// The current behavior matches systems like gameplay tags where loading and registering apply to the entire process,
-				// but actually applying the results to actors is restricted to a specific world
+				//@TODO：在客户端-服务器 PIE 中，这些不需要世界的事实可能会造成问题。
+				// 当前的行为与游戏标签等系统相匹配，在这些系统中，加载和注册适用于整个过程、
+				// 但实际将结果应用到角色时，则仅限于特定的世界。
 				Action->OnGameFeatureRegistering();
 				Action->OnGameFeatureLoading();
 				Action->OnGameFeatureActivating(Context);

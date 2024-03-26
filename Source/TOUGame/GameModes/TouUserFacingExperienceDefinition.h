@@ -13,7 +13,7 @@ class UTexture2D;
 class UUserWidget;
 struct FFrame;
 
-/** Description of settings used to display experiences in the UI and start a new session */
+/** 用于在用户界面中显示体验和启动新会话的设置说明 */
 UCLASS(BlueprintType)
 class UTouUserFacingExperienceDefinition : public UPrimaryDataAsset
 {

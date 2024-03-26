@@ -43,7 +43,7 @@ ATouGameMode::ATouGameMode(const FObjectInitializer& ObjectInitializer)
 
 const UTouPawnData* ATouGameMode::GetPawnDataForController(const AController* InController) const
 {
-	// See if pawn data is already set on the player state
+	// 查看玩家状态中是否已经设置了棋子数据
 	if (InController != nullptr)
 	{
 		if (const ATouPlayerState* TouPS = InController->GetPlayerState<ATouPlayerState>())
@@ -55,7 +55,7 @@ const UTouPawnData* ATouGameMode::GetPawnDataForController(const AController* In
 		}
 	}
 
-	// If not, fall back to the the default for the current experience
+	// 如果没有，则返回当前体验的默认值
 	check(GameState);
 	UTouExperienceManagerComponent* ExperienceComponent = GameState->FindComponentByClass<UTouExperienceManagerComponent>();
 	check(ExperienceComponent);
@@ -68,11 +68,11 @@ const UTouPawnData* ATouGameMode::GetPawnDataForController(const AController* In
 			return Experience->DefaultPawnData;
 		}
 
-		// Experience is loaded and there's still no pawn data, fall back to the default for now
+		// 经验已加载，但仍没有棋子数据，暂时返回默认值
 		return UTouAssetManager::Get().GetDefaultPawnData();
 	}
 
-	// Experience not loaded yet, so there is no pawn data to be had
+	// 经验尚未加载，因此没有棋子数据
 	return nullptr;
 }
 
@@ -80,7 +80,7 @@ void ATouGameMode::InitGame(const FString& MapName, const FString& Options, FStr
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
-	// Wait for the next frame to give time to initialize startup settings
+	// 等待下一帧，以便有时间初始化启动设置
 	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &ThisClass::HandleMatchAssignmentIfNotExpectingOne);
 }
 
@@ -89,14 +89,14 @@ void ATouGameMode::HandleMatchAssignmentIfNotExpectingOne()
 	FPrimaryAssetId ExperienceId;
 	FString ExperienceIdSource;
 
-	// Precedence order (highest wins)
-	//  - Matchmaking assignment (if present)
-	//  - URL Options override
-	//  - Developer Settings (PIE only)
-	//  - Command Line override
-	//  - World Settings
-	//  - Dedicated server
-	//  - Default experience
+	// 优先顺序（最高者获胜）
+	// - 匹配分配（如果存在）
+	// - URL 选项覆盖
+	// - 开发人员设置（仅限 PIE）
+	// - 命令行覆盖
+	// - 世界设置
+	// - 专用服务器
+	// - 默认体验
 
 	UWorld* World = GetWorld();
 
@@ -113,7 +113,7 @@ void ATouGameMode::HandleMatchAssignmentIfNotExpectingOne()
 		ExperienceIdSource = TEXT("DeveloperSettings");
 	}
 
-	// see if the command line wants to set the experience
+	// 看看命令行是否希望设置体验
 	if (!ExperienceId.IsValid())
 	{
 		FString ExperienceFromCommandLine;
@@ -128,7 +128,7 @@ void ATouGameMode::HandleMatchAssignmentIfNotExpectingOne()
 		}
 	}
 
-	// see if the world settings has a default experience
+	// 看看世界设置是否有默认体验
 	if (!ExperienceId.IsValid())
 	{
 		if (ATouWorldSettings* TypedWorldSettings = Cast<ATouWorldSettings>(GetWorldSettings()))
@@ -146,16 +146,16 @@ void ATouGameMode::HandleMatchAssignmentIfNotExpectingOne()
 		ExperienceId = FPrimaryAssetId();
 	}
 
-	// Final fallback to the default experience
+	// 最终退回到默认体验
 	if (!ExperienceId.IsValid())
 	{
 		if (TryDedicatedServerLogin())
 		{
-			// This will start to host as a dedicated server
+			// 这将开始作为专用服务器托管
 			return;
 		}
 
-		//@TODO: Pull this from a config setting or something
+		//@TODO: 从配置设置或其他设置中提取
 		ExperienceId = FPrimaryAssetId(FPrimaryAssetType("TouExperienceDefinition"), FName("B_TouDefaultExperience"));
 		ExperienceIdSource = TEXT("Default");
 	}
@@ -165,19 +165,19 @@ void ATouGameMode::HandleMatchAssignmentIfNotExpectingOne()
 
 bool ATouGameMode::TryDedicatedServerLogin()
 {
-	// Some basic code to register as an active dedicated server, this would be heavily modified by the game
+	// 注册为活动专用服务器的一些基本代码，这将由游戏进行大量修改
 	FString DefaultMap = UGameMapsSettings::GetGameDefaultMap();
 	UWorld* World = GetWorld();
 	UGameInstance* GameInstance = GetGameInstance();
 	if (GameInstance && World && World->GetNetMode() == NM_DedicatedServer && World->URL.Map == DefaultMap)
 	{
-		// Only register if this is the default map on a dedicated server
+		// 只有当这是专用服务器上的默认地图时才会注册
 		UCommonUserSubsystem* UserSubsystem = GameInstance->GetSubsystem<UCommonUserSubsystem>();
 
-		// Dedicated servers may need to do an online login
+		// 专用服务器可能需要进行在线登录
 		UserSubsystem->OnUserInitializeComplete.AddDynamic(this, &ATouGameMode::OnUserInitializedForDedicatedServer);
 
-		// There are no local users on dedicated server, but index 0 means the default platform user which is handled by the online login code
+		// 专用服务器上没有本地用户，但索引 0 表示默认平台用户，由在线登录代码处理
 		if (!UserSubsystem->TryToLoginForOnlinePlay(0))
 		{
 			OnUserInitializedForDedicatedServer(nullptr, false, FText(), ECommonUserPrivilege::CanPlayOnline, ECommonUserOnlineContext::Default);
@@ -193,7 +193,7 @@ void ATouGameMode::HostDedicatedServerMatch(ECommonSessionOnlineMode OnlineMode)
 {
 	FPrimaryAssetType UserExperienceType = UTouUserFacingExperienceDefinition::StaticClass()->GetFName();
 	
-	// Figure out what UserFacingExperience to load
+	// 找出要加载的 UserFacingExperience
 	FPrimaryAssetId UserExperienceId;
 	FString UserExperienceFromCommandLine;
 	if (FParse::Value(FCommandLine::Get(), TEXT("UserExperience="), UserExperienceFromCommandLine) ||
@@ -206,7 +206,7 @@ void ATouGameMode::HostDedicatedServerMatch(ECommonSessionOnlineMode OnlineMode)
 		}
 	}
 
-	// Search for the matching experience, it's fine to force load them because we're in dedicated server startup
+	// 搜索匹配体验，强制加载即可，因为我们是在专用服务器上启动的
 	UTouAssetManager& AssetManager = UTouAssetManager::Get();
 	TSharedPtr<FStreamableHandle> Handle = AssetManager.LoadPrimaryAssetsWithType(UserExperienceType);
 	if (ensure(Handle.IsValid()))
@@ -305,9 +305,9 @@ void ATouGameMode::OnMatchAssignmentGiven(FPrimaryAssetId ExperienceId, const FS
 
 void ATouGameMode::OnExperienceLoaded(const UTouExperienceDefinition* CurrentExperience)
 {
-	// Spawn any players that are already attached
-	//@TODO: Here we're handling only *player* controllers, but in GetDefaultPawnClassForController_Implementation we skipped all controllers
-	// GetDefaultPawnClassForController_Implementation might only be getting called for players anyways
+	// 生成任何已连接的玩家
+	//@TODO: 这里我们只处理*玩家*控制器，但在 GetDefaultPawnClassForController_Implementation 中我们跳过了所有控制器。
+	// 无论如何，GetDefaultPawnClassForController_Implementation 可能只针对玩家调用。
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 	{
 		APlayerController* PC = Cast<APlayerController>(*Iterator);

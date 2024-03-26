@@ -49,6 +49,6 @@ void ATouWorldSettings::CheckForErrors()
 		}
 	}
 
-	//@TODO: Make sure the soft object path is something that can actually be turned into a primary asset ID (e.g., is not pointing to an experience in an unscanned directory)
+	//@TODO: 确保软对象路径可实际转化为主要资产 ID（例如，不是指向未扫描目录中的体验）。
 }
 #endif

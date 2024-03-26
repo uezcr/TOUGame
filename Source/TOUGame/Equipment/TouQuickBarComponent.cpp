@@ -5,7 +5,7 @@
 #include "Equipment/TouEquipmentManagerComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "GameFramework/Pawn.h"
-#include "Inventory/InventoryFragment_EquippableItem.h"
+#include "Inventory/InventoryFragment/InventoryFragment_EquippableItem.h"
 #include "NativeGameplayTags.h"
 #include "Net/UnrealNetwork.h"
 

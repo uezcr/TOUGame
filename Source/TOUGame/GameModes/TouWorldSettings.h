@@ -24,19 +24,19 @@ public:
 #endif
 
 public:
-	// Returns the default experience to use when a server opens this map if it is not overridden by the user-facing experience
+	// 返回服务器打开此地图时使用的默认体验（如果该体验未被面向用户的体验所覆盖）。
 	FPrimaryAssetId GetDefaultGameplayExperience() const;
 
 protected:
-	// The default experience to use when a server opens this map if it is not overridden by the user-facing experience
+	// 服务器打开此地图时，如果未被面向用户的体验覆盖，则使用默认体验
 	UPROPERTY(EditDefaultsOnly, Category=GameMode)
 	TSoftClassPtr<UTouExperienceDefinition> DefaultGameplayExperience;
 
 public:
 
 #if WITH_EDITORONLY_DATA
-	// Is this level part of a front-end or other standalone experience?
-	// When set, the net mode will be forced to Standalone when you hit Play in the editor
+	// 这个关卡是前端体验的一部分还是其他独立体验的一部分？
+	// 设置后，当您在编辑器中点击 "播放 "时，网络模式将强制为单机模式。
 	UPROPERTY(EditDefaultsOnly, Category=PIE)
 	bool ForceStandaloneNetMode = false;
 #endif

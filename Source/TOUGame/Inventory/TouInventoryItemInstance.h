@@ -16,6 +16,8 @@ struct FGameplayTag;
 
 /**
  * UTouInventoryItemInstance
+ * 道具的实例类
+ * 储存了道具的数量和TouInventoryItemDefinition
  */
 UCLASS(BlueprintType)
 class UTouInventoryItemInstance : public UObject
@@ -29,19 +31,19 @@ public:
 	virtual bool IsSupportedForNetworking() const override { return true; }
 	//~End of UObject interface
 
-	// Adds a specified number of stacks to the tag (does nothing if StackCount is below 1)
+	// 向Tag添加指定数量的堆栈（如果堆栈数小于 1，则不执行任何操作）
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
 	void AddStatTagStack(FGameplayTag Tag, int32 StackCount);
 
-	// Removes a specified number of stacks from the tag (does nothing if StackCount is below 1)
+	// 从Tag中移除指定数量的堆栈（如果堆栈数小于 1，则不执行任何操作）
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category= Inventory)
 	void RemoveStatTagStack(FGameplayTag Tag, int32 StackCount);
 
-	// Returns the stack count of the specified tag (or 0 if the tag is not present)
+	// 返回指定Tag的堆栈计数（如果不存在标记，则返回 0）
 	UFUNCTION(BlueprintCallable, Category=Inventory)
 	int32 GetStatTagStackCount(FGameplayTag Tag) const;
 
-	// Returns true if there is at least one stack of the specified tag
+	// 如果至少有一个指定Tag的堆栈，则返回 true
 	UFUNCTION(BlueprintCallable, Category=Inventory)
 	bool HasStatTag(FGameplayTag Tag) const;
 
@@ -61,7 +63,7 @@ public:
 
 private:
 #if UE_WITH_IRIS
-	/** Register all replication fragments */
+	/** 注册所有复制片段 */
 	virtual void RegisterReplicationFragments(UE::Net::FFragmentRegistrationContext& Context, UE::Net::EFragmentRegistrationFlags RegistrationFlags) override;
 #endif // UE_WITH_IRIS
 

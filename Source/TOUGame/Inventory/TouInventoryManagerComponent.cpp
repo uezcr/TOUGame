@@ -89,7 +89,7 @@ UTouInventoryItemInstance* FTouInventoryList::AddEntry(TSubclassOf<UTouInventory
 
 
 	FTouInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-	NewEntry.Instance = NewObject<UTouInventoryItemInstance>(OwnerComponent->GetOwner());  //@TODO: Using the actor instead of component as the outer due to UE-127172
+	NewEntry.Instance = NewObject<UTouInventoryItemInstance>(OwnerComponent->GetOwner());  //@TODO: 由于 UE-127172 的原因，使用行为体而不是组件作为外层
 	NewEntry.Instance->SetItemDef(ItemDef);
 	for (UTouInventoryItemFragment* Fragment : GetDefault<UTouInventoryItemDefinition>(ItemDef)->Fragments)
 	{
@@ -158,7 +158,7 @@ void UTouInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetime
 
 bool UTouInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 StackCount)
 {
-	//@TODO: Add support for stack limit / uniqueness checks / etc...
+	//@TODO: 添加对堆栈限制/唯一性检查等的支持
 	return true;
 }
 
@@ -246,7 +246,7 @@ bool UTouInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<UTouInv
 		return false;
 	}
 
-	//@TODO: N squared right now as there's no acceleration structure
+	//@TODO: N 平方，因为现在没有加速度结构
 	int32 TotalConsumed = 0;
 	while (TotalConsumed < NumToConsume)
 	{

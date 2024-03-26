@@ -12,8 +12,8 @@ class UGameFeatureData;
 struct FPrimaryAssetId;
 
 /**
- * Manager to keep track of the state machines that bring a game feature plugin into memory and active
- * This class discovers plugins either that are built-in and distributed with the game or are reported externally (i.e. by a web service or other endpoint)
+ * 跟踪将游戏功能插件带入内存并激活的状态机的管理器。
+ * 该类可发现游戏内置和分发的插件，或外部报告的插件（即通过网络服务或其他端点）。
  */
 UCLASS(MinimalAPI, Config = Game)
 class UTouGameFeaturePolicy : public UDefaultGameFeaturesProjectPolicies

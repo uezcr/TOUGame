@@ -33,20 +33,20 @@ public:
 	//~End of UPrimaryDataAsset interface
 
 public:
-	// List of Game Feature Plugins this experience wants to have active
+	// 该体验希望激活的游戏功能插件列表
 	UPROPERTY(EditDefaultsOnly, Category = Gameplay)
 	TArray<FString> GameFeaturesToEnable;
 
-	/** The default pawn class to spawn for players */
+	/** 为玩家生成的默认棋子类别 */
 	//@TODO: Make soft?
 	UPROPERTY(EditDefaultsOnly, Category=Gameplay)
 	TObjectPtr<const UTouPawnData> DefaultPawnData;
 
-	// List of actions to perform as this experience is loaded/activated/deactivated/unloaded
+	// 加载/激活/停用/卸载该体验时要执行的操作列表
 	UPROPERTY(EditDefaultsOnly, Instanced, Category="Actions")
 	TArray<TObjectPtr<UGameFeatureAction>> Actions;
 
-	// List of additional action sets to compose into this experience
+	// 要编入该体验的其他行动集清单
 	UPROPERTY(EditDefaultsOnly, Category=Gameplay)
 	TArray<TObjectPtr<UTouExperienceActionSet>> ActionSets;
 };

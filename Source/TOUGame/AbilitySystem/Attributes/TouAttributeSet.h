@@ -44,7 +44,7 @@ DECLARE_MULTICAST_DELEGATE_SixParams(FTouAttributeEvent, AActor* /*EffectInstiga
 /**
  * UTouAttributeSet
  *
- *	Base attribute set class for the project.
+ *	项目的基本属性集类。
  */
 UCLASS()
 class TOUGAME_API UTouAttributeSet : public UAttributeSet

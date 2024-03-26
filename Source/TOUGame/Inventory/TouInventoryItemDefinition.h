@@ -13,7 +13,7 @@ struct FFrame;
 
 //////////////////////////////////////////////////////////////////////
 
-// Represents a fragment of an item definition
+// 代表道具定义的片段
 UCLASS(DefaultToInstanced, EditInlineNew, Abstract)
 class TOUGAME_API UTouInventoryItemFragment : public UObject
 {
@@ -27,6 +27,7 @@ public:
 
 /**
  * UTouInventoryItemDefinition
+ * 交互道具的定义，也是基本的基类
  */
 UCLASS(Blueprintable, Const, Abstract)
 class UTouInventoryItemDefinition : public UObject

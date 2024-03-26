@@ -41,27 +41,27 @@ public:
 	virtual bool ShouldShowLoadingScreen(FString& OutReason) const override;
 	//~End of ILoadingProcessInterface
 
-	// Tries to set the current experience, either a UI or gameplay one
+	// 尝试设置当前体验，无论是用户界面还是游戏体验
 	void SetCurrentExperience(FPrimaryAssetId ExperienceId);
 
-	// Ensures the delegate is called once the experience has been loaded,
-	// before others are called.
-	// However, if the experience has already loaded, calls the delegate immediately.
+	// 确保在加载体验后调用委托、
+	// 在调用其他委托之前。
+	// 但是，如果体验已加载，则会立即调用委托。
 	void CallOrRegister_OnExperienceLoaded_HighPriority(FOnTouExperienceLoaded::FDelegate&& Delegate);
 
-	// Ensures the delegate is called once the experience has been loaded
-	// If the experience has already loaded, calls the delegate immediately
+	// 确保在加载体验后调用委托
+	// 如果体验已加载，则立即调用委托
 	void CallOrRegister_OnExperienceLoaded(FOnTouExperienceLoaded::FDelegate&& Delegate);
 
-	// Ensures the delegate is called once the experience has been loaded
-	// If the experience has already loaded, calls the delegate immediately
+	// 确保在加载体验后调用委托
+	// 如果体验已加载，则立即调用委托
 	void CallOrRegister_OnExperienceLoaded_LowPriority(FOnTouExperienceLoaded::FDelegate&& Delegate);
 
-	// This returns the current experience if it is fully loaded, asserting otherwise
-	// (i.e., if you called it too soon)
+	// 如果当前体验已完全加载，则返回当前体验，否则将断言
+	// （即，如果您过早调用它）
 	const UTouExperienceDefinition* GetCurrentExperienceChecked() const;
 
-	// Returns true if the experience is fully loaded
+	// 如果体验已完全加载，则返回 true
 	bool IsExperienceLoaded() const;
 
 private:

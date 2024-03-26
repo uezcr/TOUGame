@@ -17,7 +17,7 @@ class UObject;
 /**
  * UTouPawnData
  *
- *	Non-mutable data asset that contains properties used to define a pawn.
+ *	不可变的数据资产，包含用于定义棋子的属性。
  */
 UCLASS(BlueprintType, Const, Meta = (DisplayName = "Tou Pawn Data", ShortTooltip = "Data asset used to define a Pawn."))
 class TOUGAME_API UTouPawnData : public UPrimaryDataAsset
@@ -30,23 +30,23 @@ public:
 
 public:
 
-	// Class to instantiate for this pawn (should usually derive from ATouPawn or ATouCharacter).
+	// 该棋子的实例化类（通常应派生自 ATouPawn 或 ATouCharacter）。
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tou|Pawn")
 	TSubclassOf<APawn> PawnClass;
 
-	// Ability sets to grant to this pawn's ability system.
+	// 授予该棋子能力系统的能力套装。
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tou|Abilities")
 	TArray<TObjectPtr<UTouAbilitySet>> AbilitySets;
 
-	// What mapping of ability tags to use for actions taking by this pawn
+	// 该棋子的行动应使用哪些能力标记映射
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tou|Abilities")
 	TObjectPtr<UTouAbilityTagRelationshipMapping> TagRelationshipMapping;
 
-	// Input configuration used by player controlled pawns to create input mappings and bind input actions.
+	// 玩家控制的棋子使用的输入配置，用于创建输入映射和绑定输入操作。
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tou|Input")
 	TObjectPtr<UTouInputConfig> InputConfig;
 
-	// Default camera mode used by player controlled pawns.
+	// 玩家控制的棋子使用的默认摄像机模式。
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tou|Camera")
 	TSubclassOf<UTouCameraMode> DefaultCameraMode;
 };

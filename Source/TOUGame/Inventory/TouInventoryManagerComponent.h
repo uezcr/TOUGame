@@ -16,7 +16,7 @@ struct FTouInventoryList;
 struct FNetDeltaSerializeInfo;
 struct FReplicationFlags;
 
-/** A message when an item is added to the inventory */
+/** 物品添加到库存时的信息 */
 USTRUCT(BlueprintType)
 struct FTouInventoryChangeMessage
 {
@@ -36,7 +36,7 @@ struct FTouInventoryChangeMessage
 	int32 Delta = 0;
 };
 
-/** A single entry in an inventory */
+/** 清单中的单个条目 */
 USTRUCT(BlueprintType)
 struct FTouInventoryEntry : public FFastArraySerializerItem
 {
@@ -127,7 +127,7 @@ struct TStructOpsTypeTraits<FTouInventoryList> : public TStructOpsTypeTraitsBase
 
 
 /**
- * Manages an inventory
+ * 管理库存
  */
 UCLASS(BlueprintType)
 class TOUGAME_API UTouInventoryManagerComponent : public UActorComponent
@@ -152,10 +152,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Inventory, BlueprintPure=false)
 	TArray<UTouInventoryItemInstance*> GetAllItems() const;
 
+	//查找第一个和ItemDef一样的并返回
 	UFUNCTION(BlueprintCallable, Category=Inventory, BlueprintPure)
 	UTouInventoryItemInstance* FindFirstItemStackByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const;
 
+	//获取这个ItemDef有多少个
 	int32 GetTotalItemCountByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const;
+	//根据ItemDef消费NumToConsume个数量的Entry
 	bool ConsumeItemsByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 NumToConsume);
 
 	//~UObject interface

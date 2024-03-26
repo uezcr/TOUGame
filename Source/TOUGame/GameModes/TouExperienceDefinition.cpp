@@ -37,12 +37,12 @@ EDataValidationResult UTouExperienceDefinition::IsDataValid(FDataValidationConte
 		++EntryIndex;
 	}
 
-	// Make sure users didn't subclass from a BP of this (it's fine and expected to subclass once in BP, just not twice)
+	// 确保用户没有从这个 BP 中进行子类化（在 BP 中进行一次子类化是可以的，也是应该的，但不能进行两次）。
 	if (!GetClass()->IsNative())
 	{
 		const UClass* ParentClass = GetClass()->GetSuperClass();
 
-		// Find the native parent
+		// 查找原生父本
 		const UClass* FirstNativeParent = ParentClass;
 		while ((FirstNativeParent != nullptr) && !FirstNativeParent->IsNative())
 		{

@@ -19,9 +19,9 @@ struct FTouBundles
 /**
  * UTouAssetManager
  *
- *	Game implementation of the asset manager that overrides functionality and stores game-specific types.
- *	It is expected that most games will want to override AssetManager as it provides a good place for game-specific loading logic.
- *	This class is used by setting 'AssetManagerClassName' in DefaultEngine.ini.
+ * 资产管理器的游戏实现，可覆盖功能并存储游戏特定类型。
+ * 预计大多数游戏都希望覆盖 AssetManager，因为它为游戏特定的加载逻辑提供了一个良好的位置。
+ * 该类可通过在 DefaultEngine.ini 中设置 "AssetManagerClassName "来使用。
  */
 UCLASS(Config = Game)
 class UTouAssetManager : public UAssetManager
@@ -84,7 +84,7 @@ protected:
 	UPROPERTY(Config)
 	TSoftObjectPtr<UTouGameData> TouGameDataPath;
 
-	// Loaded version of the game data
+	//加载的游戏数据版本
 	UPROPERTY(Transient)
 	TMap<TObjectPtr<UClass>, TObjectPtr<UPrimaryDataAsset>> GameDataMap;
 

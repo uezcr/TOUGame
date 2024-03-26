@@ -84,14 +84,14 @@ private:
 	float HealthBeforeAttributeChange;
 
 	// -------------------------------------------------------------------
-	//	Meta Attribute (please keep attributes that aren't 'stateful' below 
+	//	元属性（请将非 "有状态 "属性保留在下面 
 	// -------------------------------------------------------------------
 
-	// Incoming healing. This is mapped directly to +Health
+	// 传入治疗。直接映射到 +Health
 	UPROPERTY(BlueprintReadOnly, Category="Tou|Health", Meta=(AllowPrivateAccess=true))
 	FGameplayAttributeData Healing;
 
-	// Incoming damage. This is mapped directly to -Health
+	// 传入损伤。直接映射到 -Health
 	UPROPERTY(BlueprintReadOnly, Category="Tou|Health", Meta=(HideFromModifiers, AllowPrivateAccess=true))
 	FGameplayAttributeData Damage;
 };

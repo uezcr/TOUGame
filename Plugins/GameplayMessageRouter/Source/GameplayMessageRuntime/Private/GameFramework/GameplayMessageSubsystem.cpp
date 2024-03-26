@@ -87,7 +87,7 @@ void UGameplayMessageSubsystem::BroadcastMessageInternal(FGameplayTag Channel, c
 	{
 		if (const FChannelListenerList* pList = ListenerMap.Find(Tag))
 		{
-			// Copy in case there are removals while handling callbacks
+			// 复制，以防在处理回调时出现删除操作
 			TArray<FGameplayMessageListenerData> ListenerArray(pList->Listeners);
 
 			for (const FGameplayMessageListenerData& Listener : ListenerArray)

@@ -40,11 +40,11 @@ public:
 	const UInputAction* FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound = true) const;
 
 public:
-	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and must be manually bound.
+	// 所有者使用的输入操作列表。  这些输入操作会映射到GameplayTag，必须手动绑定。
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
 	TArray<FTouInputAction> NativeInputActions;
 
-	// List of input actions used by the owner.  These input actions are mapped to a gameplay tag and are automatically bound to abilities with matching input tags.
+	// 所有者使用的输入操作列表。  这些输入操作会映射到GameplayTag，并自动绑定到具有匹配输入Tag的能力上。
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Meta = (TitleProperty = "InputAction"))
 	TArray<FTouInputAction> AbilityInputActions;
 	

@@ -1,7 +1,7 @@
 #include "IPickupable.h"
 
 #include "GameFramework/Actor.h"
-#include "TouInventoryManagerComponent.h"
+#include "../TouInventoryManagerComponent.h"
 #include "UObject/ScriptInterface.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(IPickupable)

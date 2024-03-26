@@ -53,7 +53,7 @@ void FGameplayTagStackContainer::RemoveStack(FGameplayTag Tag, int32 StackCount)
 		return;
 	}
 
-	//@TODO: Should we error if you try to remove a stack that doesn't exist or has a smaller count?
+	//@TODO: 如果您尝试移除一个不存在或数量较少的堆栈，我们是否应该出错？
 	if (StackCount > 0)
 	{
 		for (auto It = Stacks.CreateIterator(); It; ++It)
