@@ -154,6 +154,9 @@ private:
 	// Combat attribute set used by this actor.
 	UPROPERTY()
 	TObjectPtr<const class UTouCombatSet> CombatSet;
+	//角色属性.
+	UPROPERTY()
+	TObjectPtr<const class UTouRPGSet> RPGSet;
 
 	UPROPERTY(Replicated)
 	ETouPlayerConnectionType MyPlayerConnectionType;

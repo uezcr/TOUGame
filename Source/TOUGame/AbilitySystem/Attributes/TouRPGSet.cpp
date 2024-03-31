@@ -1,5 +1,6 @@
 #include "TouRPGSet.h"
 
+#include "TouGameplayTags.h"
 #include "Net/UnrealNetwork.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TouRPGSet)
@@ -8,7 +9,19 @@ class FLifetimeProperty;
 
 
 UTouRPGSet::UTouRPGSet()
+    : Strength(5)
+    , Dexterity(5)
+    , Constitution(5)
+    , Intelligence(5)
+    , Wisdom(5)
+    , Spirit(5)
 {
+	TagsToAttributes.Add(TouGameplayTags::Attribute_Primary_Strength,GetStrengthAttribute);
+	TagsToAttributes.Add(TouGameplayTags::Attribute_Primary_Dexterity,GetDexterityAttribute);
+	TagsToAttributes.Add(TouGameplayTags::Attribute_Primary_Constitution,GetConstitutionAttribute);
+	TagsToAttributes.Add(TouGameplayTags::Attribute_Primary_Intelligence,GetIntelligenceAttribute);
+	TagsToAttributes.Add(TouGameplayTags::Attribute_Primary_Wisdom,GetWisdomAttribute);
+	TagsToAttributes.Add(TouGameplayTags::Attribute_Primary_Spirit,GetSpiritAttribute);
 }
 
 void UTouRPGSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

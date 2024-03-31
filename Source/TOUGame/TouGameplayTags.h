@@ -8,7 +8,14 @@ namespace TouGameplayTags
 {
 	TOUGAME_API	FGameplayTag FindTagByString(const FString& TagString, bool bMatchPartialString = false);
 
-	// Declare all of the custom native tags that Lyra will use
+	// Declare all of the custom native tags that Game will use
+	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attribute_Primary_Strength);
+	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attribute_Primary_Dexterity);
+	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attribute_Primary_Constitution);
+	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attribute_Primary_Intelligence);
+	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attribute_Primary_Wisdom);
+	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Attribute_Primary_Spirit);
+
 	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_IsDead);
 	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cooldown);
 	TOUGAME_API	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_ActivateFail_Cost);

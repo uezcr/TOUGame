@@ -24,3 +24,15 @@ UTouAbilitySystemComponent* UTouAttributeSet::GetTouAbilitySystemComponent() con
 	return Cast<UTouAbilitySystemComponent>(GetOwningAbilitySystemComponent());
 }
 
+const float UTouAttributeSet::GetAttributeByGamePlayTag(const FGameplayTag& GameplayTag) const
+{
+	for (auto& Attrubute: TagsToAttributes)
+	{
+		if(GameplayTag == Attrubute.Key)
+		{
+			return Attrubute.Value().GetNumericValue(this);
+		}
+	}
+	return 0.0f;
+}
+

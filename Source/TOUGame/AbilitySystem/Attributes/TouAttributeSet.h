@@ -3,7 +3,7 @@
 #pragma once
 
 #include "AttributeSet.h"
-
+#include "AbilitySystemComponent.h"
 #include "TouAttributeSet.generated.h"
 
 class AActor;
@@ -41,6 +41,10 @@ GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 */
 DECLARE_MULTICAST_DELEGATE_SixParams(FTouAttributeEvent, AActor* /*EffectInstigator*/, AActor* /*EffectCauser*/, const FGameplayEffectSpec* /*EffectSpec*/, float /*EffectMagnitude*/, float /*OldValue*/, float /*NewValue*/);
 
+//typedef is specific to the FGameplayAttribute() signature, but TStaticFunPtr is generic to any signature chosen
+//typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr FAttributeFuncPtr;
+template<class T>
+using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
 /**
  * UTouAttributeSet
  *
@@ -58,4 +62,9 @@ public:
 	UWorld* GetWorld() const override;
 
 	UTouAbilitySystemComponent* GetTouAbilitySystemComponent() const;
+	
+	const float GetAttributeByGamePlayTag(const FGameplayTag& GameplayTag) const;
+
+protected:
+	TMap<FGameplayTag, TStaticFuncPtr<FGameplayAttribute()>> TagsToAttributes;
 };

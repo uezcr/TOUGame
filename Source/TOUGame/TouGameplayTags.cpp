@@ -6,6 +6,13 @@
 
 namespace TouGameplayTags
 {
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attribute_Primary_Strength, "Attribute.Primary.Strength", "");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attribute_Primary_Dexterity, "Attribute.Primary.Dexterity", "");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attribute_Primary_Constitution, "Attribute.Primary.Constitution", "");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attribute_Primary_Intelligence, "Attribute.Primary.Intelligence", "");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attribute_Primary_Wisdom, "Attribute.Primary.Wisdom", "");
+	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Attribute_Primary_Spirit, "Attribute.Primary.Spirit", "");
+	
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_IsDead, "Ability.ActivateFail.IsDead", "Ability failed to activate because its owner is dead.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Cooldown, "Ability.ActivateFail.Cooldown", "Ability failed to activate because it is on cool down.");
 	UE_DEFINE_GAMEPLAY_TAG_COMMENT(Ability_ActivateFail_Cost, "Ability.ActivateFail.Cost", "Ability failed to activate because it did not pass the cost checks.");

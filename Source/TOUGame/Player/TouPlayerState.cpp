@@ -14,6 +14,7 @@
 #include "GameModes/TouGameMode.h"
 #include "TouLogChannels.h"
 #include "TouPlayerController.h"
+#include "AbilitySystem/Attributes/TouRPGSet.h"
 #include "Messages/TouVerbMessage.h"
 #include "Net/UnrealNetwork.h"
 
@@ -36,7 +37,7 @@ ATouPlayerState::ATouPlayerState(const FObjectInitializer& ObjectInitializer)
 	// These attribute sets will be detected by AbilitySystemComponent::InitializeComponent. Keeping a reference so that the sets don't get garbage collected before that.
 	HealthSet = CreateDefaultSubobject<UTouHealthSet>(TEXT("HealthSet"));
 	CombatSet = CreateDefaultSubobject<UTouCombatSet>(TEXT("CombatSet"));
-
+	RPGSet = CreateDefaultSubobject<UTouRPGSet>(TEXT("RPGSet"));
 	// AbilitySystemComponent needs to be updated at a high frequency.
 	NetUpdateFrequency = 100.0f;
 
