@@ -30,6 +30,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tou|Character", Meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneComponent> Scene;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "Attribute",DisplayName = "察觉检测属性"))
 	FGameplayTag PerceptionTag;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "察觉检测通过值"))
