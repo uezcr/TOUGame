@@ -7,6 +7,7 @@
 
 #include "TouInventoryManagerComponent.generated.h"
 
+struct FGameplayTag;
 class UTouInventoryItemDefinition;
 class UTouInventoryItemInstance;
 class UTouInventoryManagerComponent;
@@ -47,15 +48,17 @@ struct FTouInventoryEntry : public FFastArraySerializerItem
 
 	FString GetDebugString() const;
 
+	bool IsValid()
+	{
+		return Instance!=nullptr;
+	}
+
 private:
 	friend FTouInventoryList;
 	friend UTouInventoryManagerComponent;
 
 	UPROPERTY()
 	TObjectPtr<UTouInventoryItemInstance> Instance = nullptr;
-
-	UPROPERTY()
-	int32 StackCount = 0;
 
 	UPROPERTY(NotReplicated)
 	int32 LastObservedCount = INDEX_NONE;
@@ -92,12 +95,15 @@ public:
 	}
 
 	UTouInventoryItemInstance* AddEntry(TSubclassOf<UTouInventoryItemDefinition> ItemClass, int32 StackCount);
+	
 	void AddEntry(UTouInventoryItemInstance* Instance);
 
 	void RemoveEntry(UTouInventoryItemInstance* Instance);
 
+	void UpdateEntryCount(FTouInventoryEntry* InEntry,int32 InNum);
+
 private:
-	void BroadcastChangeMessage(FTouInventoryEntry& Entry, int32 OldCount, int32 NewCount);
+	void BroadcastChangeMessage(FTouInventoryEntry& Entry, int32 OldCount);
 
 private:
 	friend UTouInventoryManagerComponent;
@@ -137,34 +143,51 @@ class TOUGAME_API UTouInventoryManagerComponent : public UActorComponent
 public:
 	UTouInventoryManagerComponent(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
-	bool CanAddItemDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 StackCount = 1);
-
+	//添加道具到管理器
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
 	UTouInventoryItemInstance* AddItemDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 StackCount = 1);
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
-	void AddItemInstance(UTouInventoryItemInstance* ItemInstance);
-
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
-	void RemoveItemInstance(UTouInventoryItemInstance* ItemInstance);
-
+	//获取所有的实例
 	UFUNCTION(BlueprintCallable, Category=Inventory, BlueprintPure=false)
 	TArray<UTouInventoryItemInstance*> GetAllItems() const;
 
-	//查找第一个和ItemDef一样的并返回
+	//查找ItemDef一样的并返回
 	UFUNCTION(BlueprintCallable, Category=Inventory, BlueprintPure)
 	UTouInventoryItemInstance* FindFirstItemStackByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const;
-
-	//获取这个ItemDef有多少个
-	int32 GetTotalItemCountByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const;
+	
 	//根据ItemDef消费NumToConsume个数量的Entry
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
 	bool ConsumeItemsByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 NumToConsume);
+
+	//根据GameplayTag消费NumToConsume个数量的Entry
+	UFUNCTION(BlueprintCallable,BlueprintAuthorityOnly,Category=Inventory)
+	bool ConsumeItemsByTag(FGameplayTag InTag, int32 NumToConsume);
+
+	//查找当前物品的数量
+	UFUNCTION(BlueprintCallable, Category=Inventory, BlueprintPure)
+	int32 GetInventoryItemCountByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const;
+
+	//根据GameplayTag消费NumToConsume个数量的Entry
+	UFUNCTION(BlueprintCallable,Category=Inventory,BlueprintPure)
+	int32 GetInventoryItemCountByTag(FGameplayTag InTag);
 
 	//~UObject interface
 	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	virtual void ReadyForReplication() override;
 	//~End of UObject interface
+
+//后期准备删掉的	
+	//获取这个ItemDef有多少个
+	int32 GetTotalItemCountByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const;
+	
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
+	bool CanAddItemDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 StackCount = 1);
+	
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
+	void AddItemInstance(UTouInventoryItemInstance* ItemInstance);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category=Inventory)
+	void RemoveItemInstance(UTouInventoryItemInstance* ItemInstance);
 
 private:
 	UPROPERTY(Replicated)

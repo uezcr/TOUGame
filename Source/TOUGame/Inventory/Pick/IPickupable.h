@@ -16,6 +16,7 @@ class UTouInventoryManagerComponent;
 class UObject;
 struct FFrame;
 
+//是CDO模板，拾取的类型和数量
 USTRUCT(BlueprintType)
 struct FPickupTemplate
 {
@@ -29,6 +30,7 @@ public:
 	TSubclassOf<UTouInventoryItemDefinition> ItemDef;
 };
 
+//拾取的实例
 USTRUCT(BlueprintType)
 struct FPickupInstance
 {

@@ -7,7 +7,9 @@
 
 class UTouEquipmentDefinition;
 class UObject;
-
+/*
+ * TODO:目前感觉没什么用
+ */
 UCLASS()
 class UInventoryFragment_EquippableItem : public UTouInventoryItemFragment
 {
