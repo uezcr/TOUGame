@@ -3,6 +3,7 @@
 #include "DiceInterface.h"
 #include "GameFramework/Actor.h"
 #include "GameplayTagContainer.h"
+#include "Interaction/InteractableTarget.h"
 #include "DiceSceneActor.generated.h"
 
 
@@ -13,7 +14,7 @@
 class ATouCharacter;
 
 UCLASS()
-class TOUGAME_API ADiceSceneActor : public AActor, public IDiceInterface
+class TOUGAME_API ADiceSceneActor : public AActor, public IDiceInterface, public IInteractableTarget
 {
 	GENERATED_BODY()
 
