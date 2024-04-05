@@ -29,8 +29,13 @@ void ADiceSceneActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void ADiceSceneActor::TryInteract(const bool bRelease, APlayerController* PlayerController)
+{
+	BP_OnInteract(bRelease);
+}
+
 const float ADiceSceneActor::GetTargetAttributeValueByTag(const FGameplayTag& GameplayTag,
-	const ATouCharacter* Target) const
+                                                          const ATouCharacter* Target) const
 {
 	UTouAbilitySystemComponent* ASC = Target->GetTouAbilitySystemComponent();
 	if(!ASC) return 0.f;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "InteractableTarget.h"
 #include "Components/ControllerComponent.h"
 #include "InteractionComponent.generated.h"
 
@@ -10,7 +11,14 @@ class UInteractionComponent : public UControllerComponent
 public:
 	UInteractionComponent(const FObjectInitializer& ObjectInitializer);
 
+	virtual void BeginPlay() override;
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	UFUNCTION(BlueprintCallable,Client,Reliable)
+	void TryInteractClient(const bool bRelease);
+	UFUNCTION(BlueprintCallable,Server,Reliable)
+	void TryInteractServer(bool bRelease,AActor* Target);
 
 protected:
 	//目标.
@@ -28,5 +36,4 @@ private:
 	void InteractionTrace(FHitResult& HitResult) const;
 	//设置新的目标.
 	void SetTargetActor(const TObjectPtr<AActor> NewTargetActor);
-	
 };

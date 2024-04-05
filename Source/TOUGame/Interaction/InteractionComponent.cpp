@@ -1,5 +1,6 @@
 #include "Interaction/InteractionComponent.h"
 
+#include "InteractableTarget.h"
 #include "Physics/TouCollisionChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(InteractionComponent)
@@ -21,11 +22,33 @@ UInteractionComponent::UInteractionComponent(const FObjectInitializer& ObjectIni
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+void UInteractionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+	if(!IsLocalController())
+	{
+		SetComponentTickEnabled(false);
+	}
+}
+
 void UInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+                                          FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	UpdateTargetActor();
+}
+
+void UInteractionComponent::TryInteractServer_Implementation(bool bRelease, AActor* Target)
+{
+	IInteractableTarget* InteractableTarget = CastChecked<IInteractableTarget>(Target);
+	if(!InteractableTarget) return;
+	InteractableTarget->TryInteract(bRelease,GetController<APlayerController>());
+}
+
+void UInteractionComponent::TryInteractClient_Implementation(const bool bRelease)
+{
+	if(!TargetActor) return;
+	TryInteractServer(bRelease,TargetActor);
 }
 
 void UInteractionComponent::UpdateTargetActor()

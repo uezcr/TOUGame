@@ -17,6 +17,6 @@ class TOUGAME_API IInteractableTarget
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	virtual void TryInteract(const bool bRelease,APlayerController* PlayerController) = 0;
 };

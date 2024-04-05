@@ -30,6 +30,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void TryInteract(const bool bRelease, APlayerController* PlayerController) override;
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tou|Character", Meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> Scene;
@@ -41,4 +43,8 @@ protected:
 
 	UFUNCTION(BlueprintCallable,Category=DiceSceneActor)
 	const float GetTargetAttributeValueByTag(const FGameplayTag& GameplayTag,const ATouCharacter* Target) const;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnInteract(const bool bRelease);
+	
 };
