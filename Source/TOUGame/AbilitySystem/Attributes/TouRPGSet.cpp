@@ -9,10 +9,10 @@ class FLifetimeProperty;
 
 
 UTouRPGSet::UTouRPGSet()
-    : Strength(5)
+    : Strength(10)
     , Dexterity(5)
     , Constitution(5)
-    , Intelligence(5)
+    , Intelligence(12)
     , Wisdom(5)
     , Spirit(5)
 {

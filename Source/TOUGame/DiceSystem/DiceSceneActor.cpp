@@ -1,11 +1,7 @@
-// // Copyright Epic Games, Inc. All Rights Reserved.
-
-
 #include "DiceSceneActor.h"
 
-#include "AbilitySystem/TouAbilitySystemComponent.h"
-#include "AbilitySystem/Attributes/TouRPGSet.h"
-#include "Character/TouCharacter.h"
+#include "DiceStatics.h"
+
 
 
 // Sets default values
@@ -31,16 +27,6 @@ void ADiceSceneActor::Tick(float DeltaTime)
 
 void ADiceSceneActor::TryInteract(const bool bRelease, APlayerController* PlayerController)
 {
-	BP_OnInteract(bRelease);
-}
-
-const float ADiceSceneActor::GetTargetAttributeValueByTag(const FGameplayTag& GameplayTag,
-                                                          const ATouCharacter* Target) const
-{
-	UTouAbilitySystemComponent* ASC = Target->GetTouAbilitySystemComponent();
-	if(!ASC) return 0.f;
-	const UTouRPGSet* AS = CastChecked<UTouRPGSet>(ASC->GetAttributeSet(UTouRPGSet::StaticClass()));
-	if(!AS) return 0.f;
-	return AS->GetAttributeByGamePlayTag(GameplayTag);
+	BP_OnInteract(bRelease, PlayerController);
 }
 

@@ -33,18 +33,15 @@ public:
 	virtual void TryInteract(const bool bRelease, APlayerController* PlayerController) override;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tou|Character", Meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DiceSceneActor", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> Scene;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (Categories = "Attribute",DisplayName = "察觉检测属性"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DiceSceneActor", meta = (Categories = "Attribute",DisplayName = "察觉检测属性"))
 	FGameplayTag PerceptionTag;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (DisplayName = "察觉检测通过值"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "DiceSceneActor", meta = (DisplayName = "察觉检测通过值"))
 	int32 PerceptionPassValue;
-
-	UFUNCTION(BlueprintCallable,Category=DiceSceneActor)
-	const float GetTargetAttributeValueByTag(const FGameplayTag& GameplayTag,const ATouCharacter* Target) const;
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void BP_OnInteract(const bool bRelease);
 	
+	//测试用代码.
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_OnInteract(const bool bRelease, APlayerController* PlayerController);
 };
