@@ -21,6 +21,10 @@
 		{
 			"Name": "TPSGameCore",
 			"Enabled": true
+		},
+		{
+			"Name": "TPSGameAI",
+			"Enabled": true
 		}
 	]
 }
