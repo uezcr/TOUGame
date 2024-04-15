@@ -2,89 +2,288 @@
 #include "GameplayTagContainer.h"
 #include "InventoryType.generated.h"
 
-//道具可以装备的类型
-UENUM(Blueprintable,BlueprintType)
-enum class ESlotType:uint8
-{
-	//可以装备到身上的 背包，衣服等
-	E_Equipment UMETA(DisplayName="Equipment"),
+class UItemContainersData;
+class UTouEquipmentDefinition;
 
-	//武器类,可装备到1~2号快捷栏的
-	E_Weapon UMETA(DisplayName="Weapon"),
-
-	//可以装备到消耗品类3~6号快捷栏
-	E_Consumable UMETA(DisplayName="Consumable"),
-
-	//没办法装备的只能躺背包里
-	E_UnableEquip UMETA(DisplayName="Unable To Equip"),
-	
-	E_Max,
-};
-
-//道具可以装备的类型
+//道具类型
 UENUM(Blueprintable,BlueprintType)
 enum class EItemType:uint8
 {
-	//弹夹
-	E_Magazine UMETA(DisplayName="Magazine"),
+	//其他
+	E_Other UMETA(DisplayName="Other"),
 
-	//增益类，药品等
-	E_Gain UMETA(DisplayName="Gain"),
+	//食品
+	E_Food UMETA(DisplayName="Food"),
 
-	//只能售卖的东西,无法装备
-	E_Treasures UMETA(DisplayName="Treasures"),
+	//武器
+	E_Weapon UMETA(DisplayName="Weapon"),
 
-	//关卡里需要的道具
+	//子弹
+	E_Armor UMETA(DisplayName="Armor"),
+	
+	//背包
+	E_Backpack UMETA(DisplayName="Backpack"),
+
+	//医疗
+	E_Medical UMETA(DisplayName="Medical"),
+
+	//汽车零件
+	E_CarPart UMETA(DisplayName="Car Part"),
+
+	//关卡里需要的道具,(打开机关的道具)
 	E_LevelItem UMETA(DisplayName="Level Item"),
 	
-	E_Max,
+	E_Max UMETA(Hidden),
 };
 
+//交互组件的拥有者
+UENUM(Blueprintable,BlueprintType)
+enum class EInventoryType:uint8
+{
+	//玩家
+	E_Player UMETA(DisplayName="Player"),
 
+	//存储
+	E_Storage UMETA(DisplayName="Storage"),
+
+	//车
+	E_Car UMETA(DisplayName="Car"),
+
+	//商人
+	E_Vendor UMETA(DisplayName="Vendor"),
+	
+	//AI
+	E_AI UMETA(DisplayName="AI"),
+	
+	E_Max UMETA(Hidden),
+};
+
+//插槽的信息
+USTRUCT(Blueprintable,BlueprintType)
+struct FSlotInfo
+{
+	GENERATED_BODY()
+	FSlotInfo(){}
+	//插槽的类型
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo",meta = (Categories = "Inventory.Slot"))
+	FGameplayTag SlotTag;
+
+	//父级容器的ID
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	int32 ParentContainerUID;
+
+	//当前的容器下的插槽ID
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	int32 SlotID;
+	
+	//道具ID
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	int32 ItemSlotID;
+
+	//插槽现在为空吗
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	bool bIsEmpty;
+};
+
+//道具的信息
+USTRUCT(Blueprintable,BlueprintType)
+struct FItemInfos
+{
+	GENERATED_BODY()
+	FItemInfos(){}
+	//道具在表中的表行名
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ItemInfos")
+	FName ItemID;
+
+	//旋转了吗
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	bool bRotated;
+
+	//道具数量
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	int32 ItemAmount;
+	
+	//所在的插槽的ID
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	int32 CurrentSlotID;
+
+	//道具自己拥有的UIDs
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	TArray<int32> OwnContainerUIDs;
+
+	//物品的装备信息,武器类的DataAsset扩展
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	UTouEquipmentDefinition*EquipData;
+};
+
+//合成时需要的物品定义
+USTRUCT(Blueprintable,BlueprintType)
+struct FSubItemInfo
+{
+	GENERATED_BODY()
+	FSubItemInfo(){}
+	//道具在表中的表行名
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ItemInfos")
+	FName ItemID;
+
+	//合成需要多少个
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	int32 ItemAmount;
+};
+
+//合成信息
+USTRUCT(Blueprintable,BlueprintType)
+struct FCraftInfo
+{
+	GENERATED_BODY()
+	FCraftInfo(){}
+	//合成需要的原材料
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ItemInfos")
+	TArray<FSubItemInfo>Ingredients;
+
+	//合成多少个
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
+	int32 OutputAmount;
+};
+
+//库存道具
 USTRUCT(Blueprintable,BlueprintType)
 struct FInventoryItem :public FTableRowBase
 {
 	GENERATED_BODY()
 
-	//物品的唯一标识符(ID)
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	FGameplayTag ItemTag;
-
-	//物品可以装备到那种栏里
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	ESlotType SlotType;
-
-	//物品可以装备到那种栏里
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	EItemType ItemType;
-	
+	FInventoryItem(){}
 	//物品的名字
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FText Name;
 
 	//物品的介绍
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	FText Introduction;
 
-	//当前物品在世界中的实际定义
-	UPROPERTY(EditAnywhere,BlueprintReadOnly)
-	TSubclassOf<UTouInventoryItemDefinition> InventoryItemDefinition;
-	
-	//背包内的图片
-	UPROPERTY(BlueprintReadOnly,Category="Backpack")
-	UTexture2D* Icon;
+	//物品的介绍
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UTexture2D* ItemIcon;
 
-	//物品占的行数
-	UPROPERTY(BlueprintReadOnly,Category="Backpack")
-	int32 RowNumber;
+	//拉伸纹理
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool bStretchTexture = true;
 
-	//物品占的列数
-	UPROPERTY(BlueprintReadOnly,Category="Backpack")
-	int32 ColumnNumber;
+	//拾取时的静态网格体
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UStaticMesh*PickupMesh;
 
-	//物品的重量
-	UPROPERTY(BlueprintReadOnly,Category="Backpack")
-	int32 ItemWeight;
-	
-	
+	//物体占多少个格子
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FIntPoint ItemSize;
+
+	//道具类型
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	EItemType ItemType;
+
+	//这个道具可以叠加吗
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool bStackable;
+
+	//最大叠加数量
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int32 MaxStackSize;
+
+	//物品的价格
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	int32 Price;
+
+	//物品的装备信息,武器类的DataAsset扩展
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UTouEquipmentDefinition*EquipmentDefinition;
+
+	//可以下放的插槽类型
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (Categories = "Inventory.Slot"))
+	FGameplayTagContainer DroppableSlotTypes;
+
+	/* 拥有的库存信息
+	 * 拥有的库存填，如背包，防弹背心等，没有库存信息为空就行
+	 */
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UItemContainersData*OwnInventoryData;
+
+	//开始拖拽物品时的声音
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	USoundCue*DragStartingSound;
+
+	//结束拖拽物品时的声音
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	USoundCue*DragEndingSound;
+
+	//合成这个道具需要的原材料
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FCraftInfo CraftingRequirements;
+
+	//这个物品在插槽中的颜色
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	FLinearColor BackgroundColor;
+
+	//拾取完物品后这个物品销毁吗
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	bool DestoryOnPickup=true;
+};
+
+//容器规则
+UENUM(Blueprintable,BlueprintType)
+enum class EContainerRule:uint8
+{
+	//允许嵌套
+	E_AllowNested UMETA(DisplayName="Allow Nested"),
+	//允许嵌套（仅空）
+	E_OnlyEmpty UMETA(DisplayName="Allow Nested (Only Empty)"),
+	//不允许嵌套
+	E_DontAllowNested UMETA(DisplayName="Dont Allow Nested"),
+};
+
+//容器信息
+USTRUCT(Blueprintable,BlueprintType)
+struct FContainerInfo
+{
+	GENERATED_BODY()
+	FContainerInfo(){}
+
+	//容器的ID
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	int32 ContainerUID;
+
+	//容器的插槽类型(他也是装备槽)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo",meta = (Categories = "Inventory.Slot"))
+	FGameplayTag ContainerTag;
+
+	//容器规则
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	EContainerRule NestingRule;
+
+	//禁用物品类型(这个插槽不能装什么)
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	TArray<EItemType> BannedItemType;
+
+	//显示库存吗
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	bool bShowInventory;
+
+	//检查空间
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	bool bCheckForSpace;
+
+	//容器大小
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	FIntPoint ContainerSize;
+
+	//容器中的插槽信息
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	TArray<FSlotInfo> Slots;
+
+	//容器中的道具信息
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	TArray<FItemInfos> Items;
+
+	//这个容器可以按键激活吗,没有填None
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
+	FKey InputKey;
 };

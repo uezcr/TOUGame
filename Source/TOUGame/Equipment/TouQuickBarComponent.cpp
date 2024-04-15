@@ -5,7 +5,6 @@
 #include "Equipment/TouEquipmentManagerComponent.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "GameFramework/Pawn.h"
-#include "Inventory/InventoryFragment/InventoryFragment_EquippableItem.h"
 #include "NativeGameplayTags.h"
 #include "Net/UnrealNetwork.h"
 
@@ -86,7 +85,8 @@ void UTouQuickBarComponent::EquipItemInSlot()
 	check(Slots.IsValidIndex(ActiveSlotIndex));
 	check(EquippedItem == nullptr);
 
-	if (UTouInventoryItemInstance* SlotItem = Slots[ActiveSlotIndex])
+	//TODO:lzy 装备道具
+	/*if (UTouInventoryItemInstance* SlotItem = Slots[ActiveSlotIndex])
 	{
 		if (const UInventoryFragment_EquippableItem* EquipInfo = SlotItem->FindFragmentByClass<UInventoryFragment_EquippableItem>())
 		{
@@ -103,7 +103,7 @@ void UTouQuickBarComponent::EquipItemInSlot()
 				}
 			}
 		}
-	}
+	}*/
 }
 
 void UTouQuickBarComponent::UnequipItemInSlot()

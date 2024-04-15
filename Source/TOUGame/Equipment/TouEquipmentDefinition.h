@@ -30,7 +30,7 @@ struct FTouEquipmentActorToSpawn
 /**
  * UTouEquipmentDefinition
  *
- * Definition of a piece of equipment that can be applied to a pawn
+ * 可用于角色的装备的定义
  */
 UCLASS(Blueprintable, Const, Abstract, BlueprintType)
 class UTouEquipmentDefinition : public UObject
@@ -44,11 +44,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category=Equipment)
 	TSubclassOf<UTouEquipmentInstance> InstanceType;
 
-	// Gameplay ability sets to grant when this is equipped
+	// 装备此装备后可获得的GA套装
 	UPROPERTY(EditDefaultsOnly, Category=Equipment)
 	TArray<TObjectPtr<const UTouAbilitySet>> AbilitySetsToGrant;
 
-	// Actors to spawn on the pawn when this is equipped
+	// 装备此装备后，将在角色身上生成的装备
 	UPROPERTY(EditDefaultsOnly, Category=Equipment)
 	TArray<FTouEquipmentActorToSpawn> ActorsToSpawn;
 };

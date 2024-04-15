@@ -1,8 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "TouInventoryItemInstance.h"
-
-#include "Inventory/TouInventoryItemDefinition.h"
 #include "Net/UnrealNetwork.h"
 
 #if UE_WITH_IRIS
@@ -23,7 +21,6 @@ void UTouInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ThisClass, StatTags);
-	DOREPLIFETIME(ThisClass, ItemDef);
 }
 
 #if UE_WITH_IRIS
@@ -55,20 +52,3 @@ bool UTouInventoryItemInstance::HasStatTag(FGameplayTag Tag) const
 {
 	return StatTags.ContainsTag(Tag);
 }
-
-void UTouInventoryItemInstance::SetItemDef(TSubclassOf<UTouInventoryItemDefinition> InDef)
-{
-	ItemDef = InDef;
-}
-
-const UTouInventoryItemFragment* UTouInventoryItemInstance::FindFragmentByClass(TSubclassOf<UTouInventoryItemFragment> FragmentClass) const
-{
-	if ((ItemDef != nullptr) && (FragmentClass != nullptr))
-	{
-		return GetDefault<UTouInventoryItemDefinition>(ItemDef)->FindFragmentByClass(FragmentClass);
-	}
-
-	return nullptr;
-}
-
-

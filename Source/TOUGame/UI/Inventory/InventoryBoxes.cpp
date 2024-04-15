@@ -2,12 +2,15 @@
 
 
 #include "UI/Inventory/InventoryBoxes.h"
+
+#include "Blueprint/WidgetBlueprintLibrary.h"
 #include "Input/CommonUIActionRouterBase.h"
 
 void UInventoryBoxes::NativeOnActivated()
 {
 	Super::NativeOnActivated();
-	UCommonUIActionRouterBase::Get(*this)->SetActiveUIInputConfig(GetDesiredInputConfig().GetValue());
+	UWidgetBlueprintLibrary::SetInputMode_UIOnlyEx(GetOwningPlayer(),this);
+	GetOwningPlayer()->SetShowMouseCursor(true);
 }
 
 void UInventoryBoxes::NativeOnDeactivated()
@@ -16,8 +19,6 @@ void UInventoryBoxes::NativeOnDeactivated()
 	
 	if (!GetOwningPlayer()) return;
 	
-	/*UWidgetBlueprintLibrary::SetInputMode_GameOnly(GetOwningPlayer(),false);
+	UWidgetBlueprintLibrary::SetInputMode_GameOnly(GetOwningPlayer(),false);
 	GetOwningPlayer()->SetShowMouseCursor(false);
-	GetOwningPlayer()->ResetIgnoreLookInput();
-	GetOwningPlayer()->ResetIgnoreMoveInput();*/
 }

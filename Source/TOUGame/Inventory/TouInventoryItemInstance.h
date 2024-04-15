@@ -47,27 +47,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category=Inventory)
 	bool HasStatTag(FGameplayTag Tag) const;
 
-	TSubclassOf<UTouInventoryItemDefinition> GetItemDef() const
-	{
-		return ItemDef;
-	}
-
-	UFUNCTION(BlueprintCallable, BlueprintPure=false, meta=(DeterminesOutputType=FragmentClass))
-	const UTouInventoryItemFragment* FindFragmentByClass(TSubclassOf<UTouInventoryItemFragment> FragmentClass) const;
-
-	template <typename ResultClass>
-	const ResultClass* FindFragmentByClass() const
-	{
-		return (ResultClass*)FindFragmentByClass(ResultClass::StaticClass());
-	}
-
 private:
 #if UE_WITH_IRIS
 	/** 注册所有复制片段 */
 	virtual void RegisterReplicationFragments(UE::Net::FFragmentRegistrationContext& Context, UE::Net::EFragmentRegistrationFlags RegistrationFlags) override;
 #endif // UE_WITH_IRIS
-
-	void SetItemDef(TSubclassOf<UTouInventoryItemDefinition> InDef);
 
 	friend struct FTouInventoryList;
 
@@ -75,7 +59,10 @@ private:
 	UPROPERTY(Replicated)
 	FGameplayTagStackContainer StatTags;
 
-	// The item definition
-	UPROPERTY(Replicated)
-	TSubclassOf<UTouInventoryItemDefinition> ItemDef;
+	//在背包中显示的材质实例
+	UPROPERTY()
+	UMaterialInterface*BackpackMaterialIcon;
+	
+	//旋转了吗?
+	bool bIsRotate = false;
 };

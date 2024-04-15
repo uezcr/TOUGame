@@ -20,9 +20,10 @@ class TOUGAME_API UTouPickupDefinition : public UDataAsset
 	
 public:
 
-	//Defines the pickup's actors to spawn, abilities to grant, and tags to add
+	//TODO:lzy 枪械在用
+	/*//Defines the pickup's actors to spawn, abilities to grant, and tags to add
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tou|Pickup|Equipment")
-	TSubclassOf<UTouInventoryItemDefinition> InventoryItemDefinition;
+	TSubclassOf<UTouInventoryItemDefinition> InventoryItemDefinition;*/
 
 	//Visual representation of the pickup
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Tou|Pickup|Mesh")

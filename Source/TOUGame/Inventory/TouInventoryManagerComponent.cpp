@@ -5,10 +5,12 @@
 #include "Engine/ActorChannel.h"
 #include "Engine/World.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
-#include "TouInventoryItemDefinition.h"
 #include "TouInventoryItemInstance.h"
 #include "NativeGameplayTags.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
+#include "Physics/TouCollisionChannels.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(TouInventoryManagerComponent)
 
@@ -21,16 +23,6 @@ UE_DEFINE_GAMEPLAY_TAG_STATIC(TAG_Tou_Inventory_Count, "Inventory.Count");
 //////////////////////////////////////////////////////////////////////
 // FTouInventoryEntry
 
-FString FTouInventoryEntry::GetDebugString() const
-{
-	TSubclassOf<UTouInventoryItemDefinition> ItemDef;
-	if (Instance != nullptr)
-	{
-		ItemDef = Instance->GetItemDef();
-	}
-
-	return FString::Printf(TEXT("%s (x %s)"), *GetNameSafe(Instance), *GetNameSafe(ItemDef));
-}
 
 //////////////////////////////////////////////////////////////////////
 // FTouInventoryList
@@ -78,47 +70,10 @@ void FTouInventoryList::BroadcastChangeMessage(FTouInventoryEntry& Entry, int32 
 	MessageSystem.BroadcastMessage(TAG_Tou_Inventory_Message_StackChanged, Message);
 }
 
-UTouInventoryItemInstance* FTouInventoryList::AddEntry(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 StackCount)
-{
-	UTouInventoryItemInstance* Result = nullptr;
-
-	check(ItemDef != nullptr);
- 	check(OwnerComponent);
-
-	AActor* OwningActor = OwnerComponent->GetOwner();
-	check(OwningActor->HasAuthority());
-
-	//看看有没有重复的,有重复的就添加到一块
-	for (auto&Entry:Entries)
-	{
-		if(Entry.Instance->GetItemDef() == ItemDef)
-		{
-			Entry.Instance->AddStatTagStack(TAG_Tou_Inventory_Count,StackCount);
-			return Entry.Instance;
-		}
-	}
-
-	FTouInventoryEntry& NewEntry = Entries.AddDefaulted_GetRef();
-	NewEntry.Instance = NewObject<UTouInventoryItemInstance>(OwnerComponent->GetOwner());  //@TODO: 由于 UE-127172 的原因，使用行为体而不是组件作为外层
-	NewEntry.Instance->SetItemDef(ItemDef);
-	NewEntry.Instance->AddStatTagStack(TAG_Tou_Inventory_Count,StackCount);
-	for (UTouInventoryItemFragment* Fragment : GetDefault<UTouInventoryItemDefinition>(ItemDef)->Fragments)
-	{
-		if (Fragment != nullptr)
-		{
-			Fragment->OnInstanceCreated(NewEntry.Instance);
-		}
-	}
-	Result = NewEntry.Instance;
-	
-	MarkItemDirty(NewEntry);
-
-	return Result;
-}
-
 void FTouInventoryList::AddEntry(UTouInventoryItemInstance* Instance)
 {
 	unimplemented();
+	//MarkItemDirty(NewEntry);
 }
 
 void FTouInventoryList::RemoveEntry(UTouInventoryItemInstance* Instance)
@@ -192,20 +147,16 @@ void UTouInventoryManagerComponent::GetLifetimeReplicatedProps(TArray< FLifetime
 	DOREPLIFETIME(ThisClass, InventoryList);
 }
 
-UTouInventoryItemInstance* UTouInventoryManagerComponent::AddItemDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 StackCount)
+void UTouInventoryManagerComponent::BeginPlay()
 {
-	UTouInventoryItemInstance* Result = nullptr;
-	if (ItemDef != nullptr)
+	Super::BeginPlay();
+
+	OwnerPawn = Cast<APawn>(GetOwner());
+	
+	if (GetOwnerRole()==ROLE_AutonomousProxy)
 	{
-		Result = InventoryList.AddEntry(ItemDef, StackCount);
-		
-		if (Result && !IsReplicatedSubObjectRegistered(Result) && IsUsingRegisteredSubObjectList() && IsReadyForReplication())
-		{
-			AddReplicatedSubObject(Result);
-			
-		}
+		GetWorld()->GetTimerManager().SetTimer(ClientTraceHandle,this,&UTouInventoryManagerComponent::ClientTrace,TraceDelta,true);
 	}
-	return Result;
 }
 
 TArray<UTouInventoryItemInstance*> UTouInventoryManagerComponent::GetAllItems() const
@@ -213,104 +164,18 @@ TArray<UTouInventoryItemInstance*> UTouInventoryManagerComponent::GetAllItems() 
 	return InventoryList.GetAllItems();
 }
 
-UTouInventoryItemInstance* UTouInventoryManagerComponent::FindFirstItemStackByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const
+void UTouInventoryManagerComponent::ClientTrace()
 {
-	for (const FTouInventoryEntry& Entry : InventoryList.Entries)
-	{
-		UTouInventoryItemInstance* Instance = Entry.Instance;
+	APlayerController*PC = OwnerPawn->GetLocalViewingPlayerController();
+	if(!PC)return;
 
-		if (IsValid(Instance))
-		{
-			if (Instance->GetItemDef() == ItemDef)
-			{
-				return Instance;
-			}
-		}
-	}
-
-	return nullptr;
-}
-
-bool UTouInventoryManagerComponent::ConsumeItemsByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 NumToConsume)
-{
-	AActor* OwningActor = GetOwner();
-	if (!OwningActor || !OwningActor->HasAuthority())
-	{
-		return false;
-	}
-
-	FTouInventoryEntry *RemoveEntry=nullptr;
-	for (FTouInventoryEntry&Entry:InventoryList.Entries)
-	{
-		if (Entry.Instance->GetItemDef() != ItemDef) continue;
-		RemoveEntry = &Entry;
-		break;
-	}
-
-	//数量不够时移除
-	if(RemoveEntry && RemoveEntry->IsValid())
-	{
-		InventoryList.UpdateEntryCount(RemoveEntry,-NumToConsume);
-		
-		//TODO:lzy 在这激活消耗类的技能
-	}
-	
-	return true;
-}
-
-bool UTouInventoryManagerComponent::ConsumeItemsByTag(FGameplayTag InTag, int32 NumToConsume)
-{
-	AActor* OwningActor = GetOwner();
-	if (!OwningActor || !OwningActor->HasAuthority())
-	{
-		return false;
-	}
-
-	FTouInventoryEntry* RemoveEntry=nullptr;
-	for (FTouInventoryEntry&Entry:InventoryList.Entries)
-	{
-		if(!Entry.Instance->HasStatTag(InTag))continue;
-		RemoveEntry = &Entry;
-
-		break;
-	}
-
-	//数量不够时移除
-	if(RemoveEntry && RemoveEntry->IsValid())
-	{
-		InventoryList.UpdateEntryCount(RemoveEntry,-NumToConsume);
-		
-		//TODO:lzy 在这激活消耗类的技能
-	}
-	
-	return true;
-}
-
-int32 UTouInventoryManagerComponent::GetInventoryItemCountByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const
-{
-	if(ItemDef == nullptr) return INDEX_NONE;
-	UTouInventoryItemInstance* InventoryItemInstance=FindFirstItemStackByDefinition(ItemDef);
-	
-	if(IsValid(InventoryItemInstance))
-	{
-		return InventoryItemInstance->GetStatTagStackCount(TAG_Tou_Inventory_Count);
-	}
-	return INDEX_NONE;
-}
-
-int32 UTouInventoryManagerComponent::GetInventoryItemCountByTag(FGameplayTag InTag)
-{
-	if(!InTag.IsValid()) return INDEX_NONE;
-
-	for (auto&InventoryItemInstance:InventoryList.GetAllItems())
-	{
-		if (InventoryItemInstance->HasStatTag(InTag))
-		{
-			return InventoryItemInstance->GetStatTagStackCount(TAG_Tou_Inventory_Count);
-		}
-	}
-	
-	return INDEX_NONE;
+	FHitResult HitResult;
+	FVector WorldPosition;
+	FRotator WorldDirection;
+	PC->GetPlayerViewPoint(WorldPosition,WorldDirection);
+	FVector TraceEndPosition = WorldPosition + (WorldPosition * TraceLength);
+	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetOwner());
+	GetWorld()->LineTraceSingleByChannel(HitResult,WorldPosition,TraceEndPosition,Tou_TraceChannel_Interaction,TraceParams);
 }
 
 void UTouInventoryManagerComponent::ReadyForReplication()
@@ -348,67 +213,5 @@ bool UTouInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, 
 
 	return WroteSomething;
 }
-
-bool UTouInventoryManagerComponent::CanAddItemDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef, int32 StackCount)
-{
-	//@TODO: 添加对堆栈限制/唯一性检查等的支持
-	return true;
-}
-
-int32 UTouInventoryManagerComponent::GetTotalItemCountByDefinition(TSubclassOf<UTouInventoryItemDefinition> ItemDef) const
-{
-	int32 TotalCount = 0;
-	for (const FTouInventoryEntry& Entry : InventoryList.Entries)
-	{
-		UTouInventoryItemInstance* Instance = Entry.Instance;
-
-		if (IsValid(Instance))
-		{
-			if (Instance->GetItemDef() == ItemDef)
-			{
-				++TotalCount;
-			}
-		}
-	}
-
-	return TotalCount;
-}
-
-void UTouInventoryManagerComponent::AddItemInstance(UTouInventoryItemInstance* ItemInstance)
-{
-	InventoryList.AddEntry(ItemInstance);
-	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication() && ItemInstance)
-	{
-		AddReplicatedSubObject(ItemInstance);
-	}
-}
-
-void UTouInventoryManagerComponent::RemoveItemInstance(UTouInventoryItemInstance* ItemInstance)
-{
-	InventoryList.RemoveEntry(ItemInstance);
-
-	if (ItemInstance && IsUsingRegisteredSubObjectList())
-	{
-		RemoveReplicatedSubObject(ItemInstance);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////
-//
-
-// UCLASS(Abstract)
-// class UTouInventoryFilter : public UObject
-// {
-// public:
-// 	virtual bool PassesFilter(UTouInventoryItemInstance* Instance) const { return true; }
-// };
-
-// UCLASS()
-// class UTouInventoryFilter_HasTag : public UTouInventoryFilter
-// {
-// public:
-// 	virtual bool PassesFilter(UTouInventoryItemInstance* Instance) const { return true; }
-// };
 
 

@@ -8,6 +8,7 @@
 
 #include "TouCharacter.generated.h"
 
+class UCameraComponent;
 class AActor;
 class AController;
 class ATouPlayerController;
@@ -144,6 +145,7 @@ public:
 
 	virtual bool UpdateSharedReplication();
 
+	FORCEINLINE UTouCameraComponent* GetCameraComponent(){return CameraComponent.Get();};
 protected:
 
 	virtual void OnAbilitySystemInitialized();
