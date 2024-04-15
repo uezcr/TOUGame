@@ -7,6 +7,8 @@ Plugins/Developer
 Content/Asset
 Content/Audio/Sounds
 Content/LowPolyFPS2
+Content/Characters/Heroes/Mannequin/Animations/Locomotion/SwordShield
+Content/Characters/Heroes/Mannequin/Animations/Locomotion/GreatSworld
 
 .vscode
 .vs
