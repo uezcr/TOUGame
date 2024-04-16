@@ -8,6 +8,7 @@
 #include "TouInventoryItemInstance.h"
 #include "NativeGameplayTags.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Interface/Interactable.h"
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Physics/TouCollisionChannels.h"
@@ -152,8 +153,7 @@ void UTouInventoryManagerComponent::BeginPlay()
 	Super::BeginPlay();
 
 	OwnerPawn = Cast<APawn>(GetOwner());
-	
-	if (GetOwnerRole()==ROLE_AutonomousProxy)
+	if (OwnerPawn && GetOwnerRole()==ROLE_AutonomousProxy)
 	{
 		GetWorld()->GetTimerManager().SetTimer(ClientTraceHandle,this,&UTouInventoryManagerComponent::ClientTrace,TraceDelta,true);
 	}
@@ -173,9 +173,32 @@ void UTouInventoryManagerComponent::ClientTrace()
 	FVector WorldPosition;
 	FRotator WorldDirection;
 	PC->GetPlayerViewPoint(WorldPosition,WorldDirection);
-	FVector TraceEndPosition = WorldPosition + (WorldPosition * TraceLength);
+	FVector TraceEndPosition = WorldPosition + (WorldDirection.Vector() * TraceLength);
 	FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(InteractionTrace), /*bTraceComplex=*/ true, /*IgnoreActor=*/ GetOwner());
 	GetWorld()->LineTraceSingleByChannel(HitResult,WorldPosition,TraceEndPosition,Tou_TraceChannel_Interaction,TraceParams);
+
+	if (HitResult.bBlockingHit && HitResult.GetActor() && HitResult.GetActor()!=TraceActor && HitResult.GetActor()->Implements<UInteractable>())
+	{
+		if(TraceActor)
+		{
+			IInteractable::Execute_OnTraceLeave(TraceActor);
+		}
+		
+		TraceActor = HitResult.GetActor();
+		IInteractable::Execute_OnTraceEnter(TraceActor);
+	}else
+	{
+		if (TraceActor)
+		{
+			IInteractable::Execute_OnTraceLeave(TraceActor);
+			TraceActor = nullptr;
+		}
+	}
+	
+	if (bDebugMode)
+	{
+		DrawDebugLine(GetWorld(),WorldPosition,TraceEndPosition,FColor::Red);
+	}
 }
 
 void UTouInventoryManagerComponent::ReadyForReplication()

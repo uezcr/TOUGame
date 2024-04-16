@@ -126,7 +126,7 @@ struct TStructOpsTypeTraits<FTouInventoryList> : public TStructOpsTypeTraitsBase
 
 
 
-
+class UInteractable;
 /**
  * 管理库存
  */
@@ -206,4 +206,8 @@ private:
 	//拥有这个库存组件的对象
 	UPROPERTY()
 	APawn*OwnerPawn;
+
+	//扫到的对象
+	UPROPERTY()
+	AActor*TraceActor;
 };

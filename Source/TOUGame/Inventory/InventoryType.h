@@ -18,7 +18,7 @@ enum class EItemType:uint8
 	//武器
 	E_Weapon UMETA(DisplayName="Weapon"),
 
-	//子弹
+	//护甲
 	E_Armor UMETA(DisplayName="Armor"),
 	
 	//背包
@@ -70,19 +70,19 @@ struct FSlotInfo
 
 	//父级容器的ID
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
-	int32 ParentContainerUID;
+	int32 ParentContainerUID = -1;
 
 	//当前的容器下的插槽ID
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
-	int32 SlotID;
+	int32 SlotID = 0;
 	
 	//道具ID
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
-	int32 ItemSlotID;
+	int32 ItemSlotID = -1;
 
 	//插槽现在为空吗
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
-	bool bIsEmpty;
+	bool bIsEmpty = true;
 };
 
 //道具的信息
@@ -143,7 +143,7 @@ struct FCraftInfo
 
 	//合成多少个
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="SlotInfo")
-	int32 OutputAmount;
+	int32 OutputAmount=1;
 };
 
 //库存道具
@@ -187,7 +187,7 @@ struct FInventoryItem :public FTableRowBase
 
 	//最大叠加数量
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	int32 MaxStackSize;
+	int32 MaxStackSize=30;
 
 	//物品的价格
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
@@ -195,7 +195,7 @@ struct FInventoryItem :public FTableRowBase
 
 	//物品的装备信息,武器类的DataAsset扩展
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	UTouEquipmentDefinition*EquipmentDefinition;
+	TSubclassOf<UTouEquipmentDefinition>EquipmentDefinition;
 
 	//可以下放的插槽类型
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,meta = (Categories = "Inventory.Slot"))
@@ -249,7 +249,7 @@ struct FContainerInfo
 
 	//容器的ID
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
-	int32 ContainerUID;
+	int32 ContainerUID = -1;
 
 	//容器的插槽类型(他也是装备槽)
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo",meta = (Categories = "Inventory.Slot"))
@@ -269,7 +269,7 @@ struct FContainerInfo
 
 	//检查空间
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
-	bool bCheckForSpace;
+	bool bCheckForSpace = true;
 
 	//容器大小
 	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="ContainerInfo")
